@@ -49,9 +49,11 @@ newtype Folder a = Folder {
 
 instance Monad Folder where
   return x = Folder $ \_ -> (x, [])
+  {-# INLINE return #-}
   Folder f >>= g = Folder $ \s ->
     let (a, r) = {-# SCC "Folder/f" #-} f s in
     {-# SCC "Folder/>>=" #-} runFolder (g a) r
+  {-# INLINE (>>=) #-}
 
 id_ :: Folder [SB.ByteString]
 id_ = liftFold id
@@ -74,7 +76,9 @@ data Command a = Command
 
 instance Applicative Command where
   pure x = Command [] (pure x)
+  {-# INLINE pure #-}
   Command q1 p1 <*> Command q2 p2 = Command (q1 ++ q2) (p1 <*> p2)
+  {-# INLINE (<*>) #-}
 
 ------------------------------------------------------------------------
 
