@@ -66,7 +66,9 @@ liftFold f = Folder $ \s ->
 
 instance Applicative Folder where
   pure  = return
+  {-# INLINE pure #-}
   (<*>) = ap
+  {-# INLINE (<*>) #-}
 
 ------------------------------------------------------------------------
 
