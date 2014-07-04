@@ -18,7 +18,7 @@ module MPD
   ) where
 
 import Control.Applicative (Applicative(..))
-import Control.Arrow (second)
+import Control.Arrow ((***), second)
 import Control.Monad (Monad(..), ap, unless)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString      as SB
@@ -51,18 +51,15 @@ newtype Folder a = Folder {
 instance Monad Folder where
   return x = Folder $ \_ -> (x, [])
   {-# INLINE return #-}
-  Folder f >>= g = Folder $ \s ->
-    let (a, r) = {-# SCC "Folder/f" #-} f s in
-    {-# SCC "Folder/>>=" #-} runFolder (g a) r
+
+  Folder f >>= g = Folder $ (\(a, r) -> runFolder (g a) r) . f
   {-# INLINE (>>=) #-}
 
 id_ :: Folder [SB.ByteString]
 id_ = liftFold id
 
 liftFold :: ([SB.ByteString] -> a) -> Folder a
-liftFold f = Folder $ \s ->
-  let (hd, tl) = {-# SCC "liftFold/break" #-} break (== "list_OK") s
-  in ({-# SCC "liftFold/f" #-} f hd, drop 1 tl)
+liftFold f = Folder $ (f *** drop 1) . break (== "list_OK")
 
 instance Applicative Folder where
   pure  = return
