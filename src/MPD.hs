@@ -5,6 +5,7 @@
 module MPD
   ( Command(..)
   , run
+  , runWith
 
   , Folder
   , liftFold
@@ -83,8 +84,11 @@ instance Applicative Command where
 ------------------------------------------------------------------------
 
 run :: Command a -> IO a
-run (Command q p) = do
-  hdl <- connectTo "localhost" (PortNumber 6600)
+run = runWith "localhost" 6600
+
+runWith :: String -> Integer -> Command a -> IO a
+runWith host port (Command q p) = do
+  hdl <- connectTo host (PortNumber $ fromIntegral port)
   IO.hSetNewlineMode hdl IO.noNewlineTranslation
   IO.hSetEncoding hdl IO.utf8
   _ <- SB.hGetLine hdl
