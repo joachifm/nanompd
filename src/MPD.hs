@@ -19,7 +19,7 @@ module MPD
 
 import Control.Applicative (Applicative(..))
 import Control.Arrow (second)
-import Control.Monad (Monad(..), ap)
+import Control.Monad (Monad(..), ap, unless)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString      as SB
 import qualified Data.Text as T
@@ -91,7 +91,8 @@ runWith host port (Command q p) = do
   hdl <- connectTo host (PortNumber $ fromIntegral port)
   IO.hSetNewlineMode hdl IO.noNewlineTranslation
   IO.hSetEncoding hdl IO.utf8
-  _ <- SB.hGetLine hdl
+  ver <- SB.hGetLine hdl
+  unless ("OK MPD" `SB.isPrefixOf` ver) $ fail "runWith: not MPD"
 
   SB.hPut hdl (pack q) >> IO.hFlush hdl
   !res <- response `fmap` LB.hGetContents hdl
