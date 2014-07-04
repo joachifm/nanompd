@@ -92,11 +92,8 @@ run (Command q p) = do
   case res of
     Left err -> fail ("run: invalid response: " ++ err)
     Right (code, body)
-      | Right () <- code -> return . fst $! runFolder p (strictBody body)
+      | Right () <- code -> return . fst $! runFolder p (map LB.toStrict body)
       | Left ack <- code -> fail (show ack)
-
-strictBody :: [LB.ByteString] -> [SB.ByteString]
-strictBody = map ({-# SCC "toStrict" #-} LB.toStrict)
 
 pack :: [SB.ByteString] -> SB.ByteString
 pack q = {-# SCC "pack" #-} unlinesB ("command_list_ok_begin" : q ++ ["command_list_end"])
