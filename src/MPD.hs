@@ -21,6 +21,8 @@ import Control.Arrow (second)
 import Control.Monad (Monad(..), ap)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString      as SB
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified System.IO as IO
 import qualified System.IO.Error as IO
 import Network
@@ -66,7 +68,7 @@ instance Applicative Folder where
 ------------------------------------------------------------------------
 
 data Command a = Command
-  { commandReq :: [SB.ByteString]
+  { commandReq :: [T.Text]
   , commandRes :: Folder a
   } deriving (Functor)
 
@@ -95,9 +97,9 @@ run (Command q p) = do
       | Right () <- code -> return . fst $! runFolder p (map LB.toStrict body)
       | Left ack <- code -> fail (show ack)
 
-pack :: [SB.ByteString] -> SB.ByteString
-pack q = {-# SCC "pack" #-} unlinesB ("command_list_ok_begin" : q ++ ["command_list_end"])
-  where unlinesB = SB.concat . map (`SB.snoc` 10)
+pack :: [T.Text] -> SB.ByteString
+pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
+     . (\q -> "command_list_ok_begin" : q ++ ["command_list_end"])
 
 ------------------------------------------------------------------------
 
