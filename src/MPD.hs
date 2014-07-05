@@ -22,6 +22,7 @@ import qualified Data.HashMap.Strict as M
 
 import Data.ByteString (ByteString)
 import Data.Text (Text)
+import qualified Data.ByteString as SB
 
 ------------------------------------------------------------------------
 -- MPD protocol command API.
@@ -35,8 +36,9 @@ currentsong = Command ["currentsong"] (liftFold songInfo)
 status :: Command StatusInfo
 status = Command ["status"] (liftFold statusInfo)
 
-listallinfo :: Command [ByteString]
-listallinfo = Command ["listallinfo"] id_
+listallinfo :: Command [SongInfo]
+listallinfo = Command ["listallinfo"] (liftFold p)
+  where p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 ------------------------------------------------------------------------
 -- MPD protocol objects.
