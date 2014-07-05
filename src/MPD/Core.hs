@@ -15,7 +15,7 @@ module MPD.Core
 
 import Control.Applicative (Applicative(..))
 import Control.Arrow ((***), second)
-import Control.Monad (Monad(..), ap, unless)
+import Control.Monad (ap, unless)
 import qualified Data.ByteString.Lazy as LB
 import qualified Data.ByteString      as SB
 import qualified Data.Text as T
@@ -83,9 +83,9 @@ runWith host port (Command q p) = do
 
   case res of
     Left err -> fail ("run: invalid response: " ++ err)
-    Right (code, body)
-      | Right () <- code -> return . fst $! runFolder p (map LB.toStrict body)
-      | Left ack <- code -> fail (show ack)
+    Right (code, body) -> case code of
+      Right () -> return . fst $! runFolder p (map LB.toStrict body)
+      Left ack -> fail (show ack)
 
 pack :: [T.Text] -> SB.ByteString
 pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
