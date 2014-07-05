@@ -103,6 +103,7 @@ statusInfo = L.foldl' step initial
       ("audio", v)          -> z { statusAudio = v }
       ("nextsong", v)       -> z { statusNextSongPos = v }
       ("nextsongid", v)     -> z { statusNextSongId = v }
+      (_, _)                -> z
 
     initial = StatusInfo
       { statusVolume = ""
