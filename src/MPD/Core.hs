@@ -95,18 +95,15 @@ pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
 
 response
   :: LB.ByteString
-  -> Either String (Either LB.ByteString (), [LB.ByteString])
-response = step . ({-# SCC "response/split" #-} LB.split 10)
+  -> (Either String (Either LB.ByteString (), [LB.ByteString]))
+response = step . LB.split 10
+  where
+    step [] = Left ("response: premature end of input"::String)
+    step (hd:tl)
+      | Just code <- end hd = Right (code, [])
+      | otherwise           = second (hd :) `fmap` step tl
 
-step
-  :: [LB.ByteString]
-  -> Either String (Either LB.ByteString (), [LB.ByteString])
-step [] = Left "response: premature end of input"
-step (hd:tl)
-  | Just code <- {-# SCC "step/end" #-} end hd = Right (code, [])
-  | otherwise = {-# SCC "step/recur" #-} second (hd :) `fmap` step tl
-
-end :: LB.ByteString -> Maybe (Either LB.ByteString ())
-end x | x == "OK"               = Just $ Right ()
+    end x
+      | x == "OK"               = Just $ Right ()
       | "ACK" `LB.isPrefixOf` x = Just $ Left $ LB.drop 4 x
       | otherwise               = Nothing
