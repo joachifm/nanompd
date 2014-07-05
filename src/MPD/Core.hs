@@ -44,7 +44,7 @@ newtype Folder a = Folder {
   } deriving (Functor)
 
 instance Monad Folder where
-  return x = Folder $ \_ -> (x, [])
+  return x = Folder $ \s -> (x, s)
   {-# INLINE return #-}
 
   Folder f >>= g = Folder $ (\(a, r) -> runFolder (g a) r) . f
