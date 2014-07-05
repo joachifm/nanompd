@@ -104,7 +104,7 @@ step
 step [] = Left "response: premature end of input"
 step (hd:tl)
   | Just code <- {-# SCC "step/end" #-} end hd = Right (code, [])
-  | otherwise = {-# SCC "step/recur" #-} fmap (second (hd :)) (step tl)
+  | otherwise = {-# SCC "step/recur" #-} second (hd :) `fmap` step tl
 
 end :: LB.ByteString -> Maybe (Either LB.ByteString ())
 end x | x == "OK"               = Just $ Right ()
