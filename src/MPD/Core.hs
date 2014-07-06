@@ -85,7 +85,7 @@ runWith host port (Command q p) = do
     Left err -> fail ("run: invalid response: " ++ err)
     Right (code, body) -> case code of
       Right () -> return . fst $! runFolder p (map LB.toStrict body)
-      Left ack -> fail (show ack)
+      Left ack -> fail (T.unpack ack)
 
 pack :: [T.Text] -> SB.ByteString
 pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
@@ -95,7 +95,7 @@ pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
 
 response
   :: LB.ByteString
-  -> (Either String (Either LB.ByteString (), [LB.ByteString]))
+  -> (Either String (Either T.Text (), [LB.ByteString]))
 response = step . LB.split 10
   where
     step [] = Left ("response: premature end of input"::String)
@@ -105,5 +105,5 @@ response = step . LB.split 10
 
     end x
       | x == "OK"               = Just $ Right ()
-      | "ACK" `LB.isPrefixOf` x = Just $ Left $ LB.drop 4 x
+      | "ACK" `LB.isPrefixOf` x = Just $ Left (T.decodeUtf8 . LB.toStrict $ LB.drop 4 x)
       | otherwise               = Nothing
