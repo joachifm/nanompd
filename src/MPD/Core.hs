@@ -56,7 +56,7 @@ instance Monad Folder where
   return x = Folder $ \s -> (x, s)
   {-# INLINE return #-}
 
-  Folder f >>= g = Folder $ (\(a, r) -> runFolder (g a) r) . f
+  Folder f >>= g = Folder $ (\(!a, r) -> runFolder (g a) r) . f
   {-# INLINE (>>=) #-}
 
 id_ :: Folder [SB.ByteString]
@@ -86,7 +86,7 @@ runWith host port (Command q p) = do
 
   maybe (fail "runWith: invalid response")
         (\(code, body) -> case code of
-            Right () -> return . fst $! runFolder p (map LB.toStrict body)
+            Right () -> return $! fst . runFolder p $ map LB.toStrict body
             Left ack -> fail (T.unpack ack))
         res
 
