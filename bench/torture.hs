@@ -12,4 +12,4 @@ import Control.Monad (replicateM_)
 
 main :: IO ()
 main = replicateM_ 1000 $
-  run ((,,) <$> listallinfo <*> status <*> currentsong) >>= ({-# SCC "main/print" #-} print)
+  run ((,,) <$> listAllInfo <*> status <*> currentSong) >>= ({-# SCC "main/print" #-} print)
