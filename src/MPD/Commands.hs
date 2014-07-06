@@ -7,6 +7,7 @@ module MPD.Commands
   , status
   , listAllInfo
   , plChangesPosId
+  , playlistInfo
 
   , StatusInfo(..)
   , SongInfo(..)
@@ -46,6 +47,10 @@ plChangesPosId :: Integer -> Command [(SB.ByteString, T.Text)]
 plChangesPosId ver = Command ["plchangesposid " <> T.pack (show ver)] (liftFold p)
   where
     p = concat . map (map pair) . cyclesWith ("cpos" `SB.isPrefixOf`)
+
+playlistInfo :: Command [SongInfo]
+playlistInfo = Command ["playlistinfo"] (liftFold p)
+  where p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 ------------------------------------------------------------------------
 -- MPD protocol objects.
