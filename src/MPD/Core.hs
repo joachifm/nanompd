@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DeriveFunctor     #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections     #-}
 
 module MPD.Core
@@ -23,7 +23,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified System.IO as IO
 import qualified System.IO.Error as IO
-import Network
+import Network (connectTo, PortID(..))
 
 ------------------------------------------------------------------------
 
@@ -35,6 +35,7 @@ data Command a = Command
 instance Applicative Command where
   pure x = Command [] (pure x)
   {-# INLINE pure #-}
+
   Command q1 p1 <*> Command q2 p2 = Command (q1 ++ q2) (p1 <*> p2)
   {-# INLINE (<*>) #-}
 
@@ -43,6 +44,13 @@ instance Applicative Command where
 newtype Folder a = Folder {
   runFolder :: [SB.ByteString] -> (a, [SB.ByteString])
   } deriving (Functor)
+
+instance Applicative Folder where
+  pure  = return
+  {-# INLINE pure #-}
+
+  (<*>) = ap
+  {-# INLINE (<*>) #-}
 
 instance Monad Folder where
   return x = Folder $ \s -> (x, s)
@@ -56,12 +64,6 @@ id_ = liftFold id
 
 liftFold :: ([SB.ByteString] -> a) -> Folder a
 liftFold f = Folder $ (f *** drop 1) . break (== "list_OK")
-
-instance Applicative Folder where
-  pure  = return
-  {-# INLINE pure #-}
-  (<*>) = ap
-  {-# INLINE (<*>) #-}
 
 ------------------------------------------------------------------------
 
