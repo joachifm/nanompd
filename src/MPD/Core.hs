@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DeriveFunctor     #-}
+{-# LANGUAGE TupleSections     #-}
 
 module MPD.Core
   (
@@ -13,7 +14,7 @@ module MPD.Core
   , id_
   ) where
 
-import Control.Applicative (Applicative(..))
+import Control.Applicative (Applicative(..), (<$>), (<|>), empty)
 import Control.Arrow ((***), second)
 import Control.Monad (ap, unless)
 import qualified Data.ByteString.Lazy as LB
@@ -81,11 +82,11 @@ runWith host port (Command q p) = do
   _ <- IO.tryIOError (SB.hPut hdl "close\n" >> IO.hFlush hdl)
   IO.hClose hdl
 
-  case res of
-    Left err -> fail ("run: invalid response: " ++ err)
-    Right (code, body) -> case code of
-      Right () -> return . fst $! runFolder p (map LB.toStrict body)
-      Left ack -> fail (T.unpack ack)
+  maybe (fail "runWith: invalid response")
+        (\(code, body) -> case code of
+            Right () -> return . fst $! runFolder p (map LB.toStrict body)
+            Left ack -> fail (T.unpack ack))
+        res
 
 pack :: [T.Text] -> SB.ByteString
 pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
@@ -93,17 +94,14 @@ pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
 
 ------------------------------------------------------------------------
 
-response
-  :: LB.ByteString
-  -> (Either String (Either T.Text (), [LB.ByteString]))
+response :: LB.ByteString -> Maybe (Either T.Text (), [LB.ByteString])
 response = step . LB.split 10
   where
-    step [] = Left ("response: premature end of input"::String)
-    step (hd:tl)
-      | Just code <- end hd = Right (code, [])
-      | otherwise           = second (hd :) `fmap` step tl
+    step []      = empty
+    step (hd:tl) = (, []) <$> end hd <|> second (hd :) <$> step tl
 
-    end x
-      | x == "OK"               = Just $ Right ()
-      | "ACK" `LB.isPrefixOf` x = Just $ Left (T.decodeUtf8 . LB.toStrict $ LB.drop 4 x)
-      | otherwise               = Nothing
+    end x | x == "OK"               = pure (Right ())
+          | "ACK" `LB.isPrefixOf` x = pure (Left $ ack x)
+          | otherwise               = empty
+
+    ack = T.decodeUtf8 . LB.toStrict . LB.drop 4
