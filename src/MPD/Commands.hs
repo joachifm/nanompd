@@ -6,6 +6,7 @@ module MPD.Commands
   , currentSong
   , status
   , listAllInfo
+  , plChangesPosId
 
   , StatusInfo(..)
   , SongInfo(..)
@@ -15,6 +16,7 @@ import MPD.Core
 import MPD.Util
 
 import Control.DeepSeq (NFData(..), deepseq)
+import Data.Monoid
 
 import qualified Data.List           as L
 import qualified Data.HashMap.Strict as M
@@ -22,6 +24,7 @@ import qualified Data.HashMap.Strict as M
 import Data.ByteString (ByteString)
 import Data.Text (Text)
 import qualified Data.ByteString as SB
+import qualified Data.Text       as T
 
 ------------------------------------------------------------------------
 -- MPD protocol command API.
@@ -38,6 +41,11 @@ status = Command ["status"] (liftFold statusInfo)
 listAllInfo :: Command [SongInfo]
 listAllInfo = Command ["listallinfo"] (liftFold p)
   where p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
+
+plChangesPosId :: Integer -> Command [(SB.ByteString, T.Text)]
+plChangesPosId ver = Command ["plchangesposid " <> T.pack (show ver)] (liftFold p)
+  where
+    p = concat . map (map pair) . cyclesWith ("cpos" `SB.isPrefixOf`)
 
 ------------------------------------------------------------------------
 -- MPD protocol objects.
