@@ -1,9 +1,30 @@
-module MPD.Util (pair, cycles, cyclesWith) where
+module MPD.Util
+  ( parseDecimal, unparseDecimal
+  , pair
+  , cycles, cyclesWith
+  ) where
 
 import Control.Arrow (second)
 import qualified Data.ByteString    as SB
 import qualified Data.Text          as T
 import qualified Data.Text.Encoding as T
+import qualified Data.Text.Read     as T
+
+{-|
+Parse a decimal value, as it would be transmitted
+by MPD.
+-}
+parseDecimal :: (Integral a) => T.Text -> Maybe a
+parseDecimal = either (const Nothing) (Just . fst) . T.decimal
+{-# INLINE parseDecimal #-}
+
+{-|
+Unparse a decimal value, as it would be transmitted
+by MPD.
+-}
+unparseDecimal :: (Integral a, Show a) => a -> T.Text
+unparseDecimal = T.pack . show
+{-# INLINE unparseDecimal #-}
 
 {-|
 Break a UTF-8 encoded 'SB.ByteString' into a key

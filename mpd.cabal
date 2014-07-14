@@ -23,6 +23,7 @@ library
       MPD
     , MPD.Core
     , MPD.Commands
+    , MPD.CommandStr
     , MPD.Util
 
   other-modules:
