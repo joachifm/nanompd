@@ -141,6 +141,7 @@ data SongInfo = SongInfo
   { songFile :: {-# UNPACK #-} !Text
   , songId   :: {-# UNPACK #-} !Text
   , songPos  :: {-# UNPACK #-} !Text
+  , songLastModified :: {-# UNPACK #-} !Text
   , songTags :: !(M.HashMap ByteString Text)
   } deriving (Show)
 
@@ -148,6 +149,7 @@ instance NFData SongInfo where
   rnf x = songFile x `deepseq`
           songId x   `deepseq`
           songPos x  `deepseq`
+          songLastModified x `deepseq`
           songTags x `deepseq` ()
 
 songInfo :: [ByteString] -> SongInfo
@@ -157,11 +159,13 @@ songInfo = L.foldl' step initial
       ("file", v) -> z { songFile = v }
       ("Id", v)   -> z { songId = v }
       ("Pos", v)  -> z { songPos = v }
+      ("Last-Modified", v) -> z { songLastModified = v }
       (k, v)      -> z { songTags = M.insert k v (songTags z) }
 
     initial = SongInfo
       { songFile = ""
       , songId = ""
       , songPos = ""
+      , songLastModified = ""
       , songTags = M.empty
       }
