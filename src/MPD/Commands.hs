@@ -13,6 +13,7 @@ module MPD.Commands
   , SongInfo(..)
   ) where
 
+import MPD.CommandStr ((.+))
 import MPD.Core
 import MPD.Util
 
@@ -44,7 +45,7 @@ listAllInfo = Command ["listallinfo"] (liftFold p)
   where p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 plChangesPosId :: Integer -> Command [(SB.ByteString, T.Text)]
-plChangesPosId ver = Command ["plchangesposid " <> T.pack (show ver)] (liftFold p)
+plChangesPosId ver = Command ["plchangesposid" .+ ver] (liftFold p)
   where
     p = concat . map (map pair) . cyclesWith ("cpos" `SB.isPrefixOf`)
 

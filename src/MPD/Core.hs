@@ -14,6 +14,8 @@ module MPD.Core
   , id_
   ) where
 
+import MPD.CommandStr (CommandStr, render)
+
 import Control.Applicative (Applicative(..), (<$>), (<|>), empty)
 import Control.Arrow ((***), second)
 import Control.Monad (ap, unless)
@@ -28,7 +30,7 @@ import Network (connectTo, PortID(..))
 ------------------------------------------------------------------------
 
 data Command a = Command
-  { commandReq :: [T.Text]
+  { commandReq :: [CommandStr]
   , commandRes :: Folder a
   } deriving (Functor)
 
@@ -78,7 +80,7 @@ runWith host port (Command q p) = do
   ver <- SB.hGetLine hdl
   unless ("OK MPD" `SB.isPrefixOf` ver) $ fail "runWith: not MPD"
 
-  SB.hPut hdl (pack q) >> IO.hFlush hdl
+  SB.hPut hdl (pack $ map render q) >> IO.hFlush hdl
   !res <- response `fmap` LB.hGetContents hdl
 
   _ <- IO.tryIOError (SB.hPut hdl "close\n" >> IO.hFlush hdl)
