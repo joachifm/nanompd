@@ -112,7 +112,7 @@ playlistInfo = Command ["playlistinfo"] (liftFold p)
 plChangesPosId :: Integer -> Command [(SB.ByteString, T.Text)]
 plChangesPosId ver = Command ["plchangesposid" .+ ver] (liftFold p)
   where
-    p = concat . map (map pair) . cyclesWith ("cpos" `SB.isPrefixOf`)
+    p = concatMap (map pair) . cyclesWith ("cpos" `SB.isPrefixOf`)
 
 shuffle :: Maybe Range -> Command ()
 shuffle mbRange = Command ["shuffle" .+ mbRange] (return ())

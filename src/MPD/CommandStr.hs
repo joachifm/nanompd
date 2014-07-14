@@ -86,7 +86,7 @@ instance ToLit Int where
   toLit = parseDecimal
 
 instance FromLit Bool where
-  fromLit x = if x then (T.pack "1") else (T.pack "0")
+  fromLit x = T.pack (if x then "1" else "0")
 
 instance ToLit Bool where
   toLit = Just . (/= T.pack "0")
