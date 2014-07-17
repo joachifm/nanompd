@@ -3,6 +3,18 @@
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+{-|
+Module      : MPD.Core
+Copyright   : (c) Joachim Fasting
+License     : MIT
+
+Stability   : unstable
+Portability : unportable
+
+Basic machinery for Defining and executing protocol
+command wrappers.
+-}
+
 module MPD.Core
   (
     Command
@@ -34,6 +46,7 @@ import qualified System.IO       as IO
 import qualified System.IO.Error as IO
 
 ------------------------------------------------------------------------
+-- The 'Command' type.
 
 data Command a = Command [CommandStr] (State [SB.ByteString] a)
   deriving (Functor)
@@ -57,6 +70,7 @@ commandRes (Command _ p) = p
 #endif
 
 ------------------------------------------------------------------------
+-- Operations
 
 run :: Command a -> IO a
 run = runWith "localhost" (PortNumber 6600)
@@ -83,8 +97,6 @@ pack :: [T.Text] -> SB.ByteString
 pack = SB.concat
      . map ((`SB.snoc` 10) . T.encodeUtf8)
      . (++ ["command_list_end"]) . ("command_list_ok_begin" :)
-
-------------------------------------------------------------------------
 
 response :: LB.ByteString -> Either T.Text [SB.ByteString]
 response = step . map LB.toStrict . LB.split 10

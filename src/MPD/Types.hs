@@ -1,6 +1,17 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+{-|
+Module      : MPD.Types
+Copyright   : (c) Joachim Fasting
+License     : MIT
+
+Stability   : unstable
+Portability : unportable
+
+Protocol scalars and objects.
+-}
+
 module MPD.Types
   (
     -- * Scalars

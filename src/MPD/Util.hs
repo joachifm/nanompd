@@ -1,3 +1,14 @@
+{-|
+Module      : MPD.Util
+Copyright   : (c) Joachim Fasting
+License     : MIT
+
+Stability   : unstable
+Portability : unportable
+
+Grab-bag of utilities, some more general than others.
+-}
+
 module MPD.Util
   ( parseDecimal, unparseDecimal
   , pair

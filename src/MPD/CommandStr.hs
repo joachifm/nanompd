@@ -4,9 +4,9 @@ Copyright   : (c) Joachim Fasting
 License     : MIT
 
 Stability   : unstable
-Portability : portable
+Portability : unportable
 
-A convenient syntax for describing MPD protocol commands.
+Convenient syntax for MPD protocol commands.
 -}
 
 module MPD.CommandStr
@@ -24,21 +24,13 @@ module MPD.CommandStr
   , render
   ) where
 
-import MPD.Lit
+import MPD.Lit (FromLit(..))
 
 import Data.Monoid (Monoid(..), (<>))
 import Data.String (IsString(..))
-import qualified Data.Text      as T
+import qualified Data.Text as T
 
 {-$usage
-
-The syntax permits incremental specification of command
-strings by specifying the protocol command name and appending
-any argument literals to it.
-
-To implement support for a new argument literal, add
-instances to 'FromLit' and also to 'ToLit' if the
-dual is desired.
 
 With @-XOverloadedStrings@ enabled, use thus
 
@@ -47,6 +39,9 @@ With @-XOverloadedStrings@ enabled, use thus
 >>> render ("play" .+ Nothing) == "play"
 >>> render ("play" .+ Just 10) == "play 10"
 >>> render ("foo" .+ 10 .+ True) == "foo 10 1"
+
+To implement support for a new argument literal, add instances
+to 'FromLit' and also to 'ToLit' if the dual is desired.
 -}
 
 {-|

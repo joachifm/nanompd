@@ -1,9 +1,21 @@
+{-|
+Module      : MPD.Lit
+Copyright   : (c) Joachim Fasting
+License     : MIT
+
+Stability   : unstable
+Portability : unportable
+
+MPD protocol literals.
+-}
+
 module MPD.Lit ( Lit, FromLit(..), ToLit(..) ) where
 
 import MPD.Util (parseDecimal, unparseDecimal)
 import qualified Data.Text as T
 
 ------------------------------------------------------------------------
+-- Classes
 
 {-|
 A class of Haskell types which can be used as command argument literals.
@@ -33,12 +45,8 @@ forAll $ \\x -> toLit (fromLit x) == Just x
 -}
 class (FromLit a, ToLit a) => Lit a
 
-instance Lit Integer
-instance Lit Int
-instance Lit Bool
-instance Lit T.Text
-
 ------------------------------------------------------------------------
+-- Instances for standard types.
 
 instance (FromLit a) => FromLit (Maybe a) where
   fromLit = maybe T.empty fromLit
@@ -52,11 +60,15 @@ instance FromLit Integer where
 instance ToLit Integer where
   toLit = parseDecimal
 
+instance Lit Integer
+
 instance FromLit Int where
   fromLit = unparseDecimal
 
 instance ToLit Int where
   toLit = parseDecimal
+
+instance Lit Int
 
 instance FromLit Bool where
   fromLit x = T.pack (if x then "1" else "0")
@@ -64,8 +76,12 @@ instance FromLit Bool where
 instance ToLit Bool where
   toLit = Just . (/= T.pack "0")
 
+instance Lit Bool
+
 instance FromLit T.Text where
   fromLit x = '"' `T.cons` x `T.snoc` '"'
 
 instance ToLit T.Text where
   toLit = Just
+
+instance Lit T.Text

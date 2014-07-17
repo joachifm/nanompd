@@ -1,6 +1,17 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+{-|
+Module      : MPD.Commands
+Copyright   : (c) Joachim Fasting
+License     : MIT
+
+Stability   : unstable
+Portability : unportable
+
+MPD protocol command wrappers.
+-}
+
 module MPD.Commands
   (
     -- * MPD protocol commands
@@ -51,7 +62,7 @@ module MPD.Commands
   ) where
 
 import MPD.CommandStr ((.+))
-import MPD.Core
+import MPD.Core (Command, command)
 import MPD.Types
 import MPD.Util
 
@@ -63,13 +74,12 @@ import qualified Data.Text.Read  as T
 import Prelude hiding (repeat)
 
 ------------------------------------------------------------------------
--- MPD protocol command API.
-
 -- Connection
 
 ping :: Command ()
 ping = command "ping" (return ())
 
+------------------------------------------------------------------------
 -- Current playlist
 
 add :: T.Text -> Command ()
@@ -99,6 +109,7 @@ plChangesPosId ver = command ("plchangesposid" .+ ver) p
 shuffle :: Maybe Range -> Command ()
 shuffle mbRange = command ("shuffle" .+ mbRange) (return ())
 
+------------------------------------------------------------------------
 -- Database
 
 find :: T.Text -> T.Text -> Command [SongInfo]
@@ -128,6 +139,7 @@ update mbPath = command ("update" .+ mbPath) p
   where
     p = either undefined fst . head . fmap (T.decimal . snd . pair) -- XXX: ugh
 
+------------------------------------------------------------------------
 -- Playback control
 
 next :: Command ()
@@ -148,6 +160,7 @@ seekId sid time = command ("seekid" .+ sid .+ time) (return ())
 stop :: Command ()
 stop = command "stop" (return ())
 
+------------------------------------------------------------------------
 -- Playback options
 
 consume :: Bool -> Command ()
@@ -165,6 +178,7 @@ setVolume n = command ("setvol" .+ n) (return ())
 single :: Bool -> Command ()
 single b = command ("single" .+ b) (return ())
 
+------------------------------------------------------------------------
 -- Status
 
 currentSong :: Command SongInfo
@@ -179,6 +193,7 @@ noidle = command "noidle" (return ())
 status :: Command StatusInfo
 status = command "status" statusInfo
 
+------------------------------------------------------------------------
 -- Stored playlists
 
 listPlaylistInfo :: T.Text -> Command [SongInfo]

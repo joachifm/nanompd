@@ -4,12 +4,11 @@ Copyright   : (c) Joachim Fasting
 License     : MIT
 
 Maintainer  : joachifm@fastmail.fm
-Stability   : experimental
-Portability : portable
+Stability   : unstable
+Portability : unportable
 
-This module defines the top-level client API,
-intended for consumption by end users and client
-implementors.
+This module defines the top-level client API, intended for
+consumption by end users and client implementors.
 -}
 
 module MPD
@@ -17,26 +16,14 @@ module MPD
     -- * Usage
     -- $usage
 
-    -- * Running MPD protocol command wrappers
-    Command
-  , run
-  , runWith
-
-    -- * Pre-defined MPD protocol command wrappers
-  , module MPD.Commands
-
-    -- * Protocol objects and scalars
-  , Range
-  , Seconds
-  , SongId
-  , SongInfo(..)
-  , SongPos
-  , StatusInfo(..)
+    module MPD.Commands
+  , module MPD.Core
+  , module MPD.Types
   ) where
 
 import MPD.Commands
-import MPD.Core
-import MPD.Types
+import MPD.Core (Command, run, runWith)
+import MPD.Types (Range, Seconds, SongId, SongInfo(..), SongPos, StatusInfo(..))
 
 {-$usage
 
