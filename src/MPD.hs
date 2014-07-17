@@ -24,10 +24,19 @@ module MPD
 
     -- * Pre-defined MPD protocol command wrappers
   , module MPD.Commands
+
+    -- * Protocol objects and scalars
+  , Range
+  , Seconds
+  , SongId
+  , SongInfo(..)
+  , SongPos
+  , StatusInfo(..)
   ) where
 
 import MPD.Commands
 import MPD.Core
+import MPD.Types
 
 {-$usage
 
