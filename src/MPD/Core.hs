@@ -14,6 +14,7 @@ import MPD.CommandStr (CommandStr, render)
 
 import Control.Applicative (Applicative(..), (<$>))
 import Control.Arrow ((***))
+import Control.Exception (bracket)
 import Control.Monad (unless)
 import Control.Monad.State.Strict (State, evalState, get, put)
 
@@ -50,23 +51,22 @@ run :: Command a -> IO a
 run = runWith "localhost" (PortNumber 6600)
 
 runWith :: HostName -> PortID -> Command a -> IO a
-runWith host port (Command q p) = do
-  hdl <- connectTo host port
-  IO.hSetNewlineMode hdl IO.noNewlineTranslation
-  IO.hSetEncoding hdl IO.utf8
-  IO.hSetBuffering hdl IO.LineBuffering
-
-  helo <- SB.hGetLine hdl
-  unless ("OK MPD" `SB.isPrefixOf` helo) $
-    fail "runWith: host failed to identify as MPD"
-
+runWith host port (Command q p) = bracket open close $ \hdl -> do
   SB.hPut hdl (pack $ map render q)
   !res <- response `fmap` LB.hGetContents hdl
-
-  _ <- IO.tryIOError (SB.hPut hdl "close\n")
-  IO.hClose hdl
-
   either (fail . T.unpack) return (evalState p `fmap` res)
+  where
+    open = do
+      hdl <- connectTo host port
+      IO.hSetNewlineMode hdl IO.noNewlineTranslation
+      IO.hSetEncoding hdl IO.utf8
+      IO.hSetBuffering hdl IO.LineBuffering
+      helo <- SB.hGetLine hdl
+      unless ("OK MPD" `SB.isPrefixOf` helo) $
+        fail "runWith: host failed to identify as MPD"
+      return hdl
+
+    close hdl = IO.tryIOError (SB.hPut hdl "close\n") >> IO.hClose hdl
 
 pack :: [T.Text] -> SB.ByteString
 pack = SB.concat
