@@ -77,13 +77,16 @@ runWith host port (Command q p) = do
   hdl <- connectTo host (PortNumber $ fromIntegral port)
   IO.hSetNewlineMode hdl IO.noNewlineTranslation
   IO.hSetEncoding hdl IO.utf8
-  ver <- SB.hGetLine hdl
-  unless ("OK MPD" `SB.isPrefixOf` ver) $ fail "runWith: not MPD"
+  IO.hSetBuffering hdl IO.LineBuffering
 
-  SB.hPut hdl (pack $ map render q) >> IO.hFlush hdl
+  helo <- SB.hGetLine hdl
+  unless ("OK MPD" `SB.isPrefixOf` helo) $
+    fail "runWith: host failed to identify as MPD"
+
+  SB.hPut hdl (pack $ map render q)
   !res <- response `fmap` LB.hGetContents hdl
 
-  _ <- IO.tryIOError (SB.hPut hdl "close\n" >> IO.hFlush hdl)
+  _ <- IO.tryIOError (SB.hPut hdl "close\n")
   IO.hClose hdl
 
   maybe (fail "runWith: invalid response")
