@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -8,6 +9,11 @@ module MPD.Core
   , command
   , run
   , runWith
+#ifdef TESTING
+  , commandRes
+  , pack
+  , response
+#endif
   ) where
 
 import MPD.CommandStr (CommandStr, render)
@@ -44,6 +50,11 @@ command q f = Command [q] $ do
   (a, res) <- (f *** drop 1) . break (== "list_OK") <$> get
   put res
   return a
+
+#ifdef TESTING
+commandRes :: Command a -> State [SB.ByteString] a
+commandRes (Command _ p) = p
+#endif
 
 ------------------------------------------------------------------------
 
