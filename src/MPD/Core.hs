@@ -69,8 +69,9 @@ runWith host port (Command q p) = do
   either (fail . T.unpack) return (evalState p `fmap` res)
 
 pack :: [T.Text] -> SB.ByteString
-pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
-     . (\q -> "command_list_ok_begin" : q ++ ["command_list_end"])
+pack = SB.concat
+     . map ((`SB.snoc` 10) . T.encodeUtf8)
+     . (++ ["command_list_end"]) . ("command_list_ok_begin" :)
 
 ------------------------------------------------------------------------
 
