@@ -140,7 +140,7 @@ playId :: Maybe SongId -> Command ()
 playId sid = command ("playid" .+ sid) (return ())
 
 previous :: Command ()
-previous = command ("previous") (return ())
+previous = command "previous" (return ())
 
 seekId :: SongId -> Seconds -> Command ()
 seekId sid time = command ("seekid" .+ sid .+ time) (return ())
