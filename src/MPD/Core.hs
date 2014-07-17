@@ -25,7 +25,7 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified System.IO as IO
 import qualified System.IO.Error as IO
-import Network (connectTo, PortID(..))
+import Network (HostName, PortID(..), connectTo)
 
 ------------------------------------------------------------------------
 
@@ -70,11 +70,11 @@ liftFold f = Folder $ (f *** drop 1) . break (== "list_OK")
 ------------------------------------------------------------------------
 
 run :: Command a -> IO a
-run = runWith "localhost" 6600
+run = runWith "localhost" (PortNumber 6600)
 
-runWith :: String -> Integer -> Command a -> IO a
+runWith :: HostName -> PortID -> Command a -> IO a
 runWith host port (Command q p) = do
-  hdl <- connectTo host (PortNumber $ fromIntegral port)
+  hdl <- connectTo host port
   IO.hSetNewlineMode hdl IO.noNewlineTranslation
   IO.hSetEncoding hdl IO.utf8
   IO.hSetBuffering hdl IO.LineBuffering
