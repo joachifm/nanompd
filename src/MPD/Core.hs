@@ -88,12 +88,7 @@ runWith host port (Command q p) = do
 
   _ <- IO.tryIOError (SB.hPut hdl "close\n")
   IO.hClose hdl
-
-  maybe (fail "runWith: invalid response")
-        (\(code, body) -> case code of
-            Right () -> return $! fst . runFolder p $ map LB.toStrict body
-            Left ack -> fail (T.unpack ack))
-        res
+  either (fail . T.unpack) (return . fst . runFolder p) res
 
 pack :: [T.Text] -> SB.ByteString
 pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
@@ -101,14 +96,11 @@ pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
 
 ------------------------------------------------------------------------
 
-response :: LB.ByteString -> Maybe (Either T.Text (), [LB.ByteString])
-response = step . LB.split 10
+response :: LB.ByteString -> Either T.Text [SB.ByteString]
+response = step . map LB.toStrict . LB.split 10
   where
-    step []      = empty
-    step (hd:tl) = (, []) <$> end hd <|> second (hd :) <$> step tl
-
-    end x | x == "OK"               = pure (Right ())
-          | "ACK" `LB.isPrefixOf` x = pure (Left $ ack x)
-          | otherwise               = empty
-
-    ack = T.decodeUtf8 . LB.toStrict . LB.drop 4
+    step (hd:tl)
+      | hd == "OK"               = Right []
+      | "ACK" `SB.isPrefixOf` hd = Left . T.decodeUtf8 $ SB.drop 4 hd
+      | otherwise                = fmap (hd :) (step tl)
+    step [] = Left "premature end-of-input"
