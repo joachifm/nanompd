@@ -25,6 +25,7 @@ library
     , MPD.Core
     , MPD.Commands
     , MPD.CommandStr
+    , MPD.Lit
     , MPD.Types
     , MPD.Util
 

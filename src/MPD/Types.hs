@@ -16,7 +16,7 @@ module MPD.Types
   , statusInfo
   ) where
 
-import MPD.CommandStr (Lit, FromLit(..), ToLit(..))
+import MPD.Lit
 import MPD.Util
 
 import Control.Applicative
