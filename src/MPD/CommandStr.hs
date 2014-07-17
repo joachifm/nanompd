@@ -36,6 +36,17 @@ import qualified Data.Text.Read as T
 
 {-$usage
 
+The syntax permits incremental specification of command
+strings by specifying the protocol command name and appending
+any argument literals to it.
+
+To implement support for a new argument literal, add
+instances to 'FromLit' and also to 'ToLit' if the
+dual is desired.
+
+With @-XOverloadedStrings@ enabled, use thus
+
+>>> render "status" == "status"
 >>> render ("repeat" .+ False) == "repeat 0"
 >>> render ("play" .+ Nothing) == "play"
 >>> render ("play" .+ Just 10) == "play 10"
@@ -48,12 +59,19 @@ import qualified Data.Text.Read as T
 A class of Haskell types which can be used as command argument literals.
 -}
 class FromLit a where
+  {-|
+  Format a Haskell value as it would be transmitted by MPD.
+  -}
   fromLit :: a -> T.Text
 
 {-|
 The dual of 'FromLit'.
 -}
 class ToLit a where
+  {-|
+  Parse a textual literal as it would be transmitted by MPD into
+  a Haskell value.
+  -}
   toLit :: T.Text -> Maybe a
 
 {-|
@@ -100,8 +118,7 @@ instance ToLit T.Text where
 ------------------------------------------------------------------------
 
 {-|
-A command string: the command name and a list of formatted parameter
-values.
+An opaque representation of a command string.
 -}
 data CommandStr = CommandStr T.Text [T.Text]
   deriving (Show)
@@ -115,8 +132,6 @@ instance IsString CommandStr where
   {-# INLINE fromString #-}
 
 {-|
-Note that
-
 @
 CommandStr name xs <> CommandStr _ ys = CommandStr name (xs <> ys)
 @
