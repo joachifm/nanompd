@@ -15,6 +15,7 @@ library
       base
     , bytestring
     , deepseq
+    , mtl
     , network
     , text
     , unordered-containers

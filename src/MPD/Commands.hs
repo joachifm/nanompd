@@ -86,63 +86,63 @@ import Prelude hiding (repeat)
 -- Connection
 
 ping :: Command ()
-ping = Command ["ping"] (return ())
+ping = command "ping" (return ())
 
 -- Current playlist
 
 add :: T.Text -> Command ()
-add uri = Command ["add" .+ uri] (return ())
+add uri = command ("add" .+ uri) (return ())
 
 addId :: T.Text -> Maybe SongPos -> Command SongId
-addId uri pos = Command ["addid" .+ uri .+ pos] (liftFold p)
+addId uri pos = command ("addid" .+ uri .+ pos) p
   where
     p = either undefined fst . head . fmap (T.decimal . snd . pair) -- XXX: ugh
 
 clear :: Command ()
-clear = Command ["clear"] (return ())
+clear = command "clear" (return ())
 
 deleteId :: SongId -> Command ()
-deleteId id' = Command ["deleteid" .+ id'] (return ())
+deleteId id' = command ("deleteid" .+ id') (return ())
 
 playlistInfo :: Command [SongInfo]
-playlistInfo = Command ["playlistinfo"] (liftFold p)
+playlistInfo = command "playlistinfo" p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 plChangesPosId :: Integer -> Command [(SB.ByteString, T.Text)]
-plChangesPosId ver = Command ["plchangesposid" .+ ver] (liftFold p)
+plChangesPosId ver = command ("plchangesposid" .+ ver) p
   where
     p = concatMap (map pair) . cyclesWith ("cpos" `SB.isPrefixOf`)
 
 shuffle :: Maybe Range -> Command ()
-shuffle mbRange = Command ["shuffle" .+ mbRange] (return ())
+shuffle mbRange = command ("shuffle" .+ mbRange) (return ())
 
 -- Database
 
 find :: T.Text -> T.Text -> Command [SongInfo]
-find meta value = Command ["find" .+ meta .+ value] (liftFold p)
+find meta value = command ("find" .+ meta .+ value) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 listAllInfo :: Command [SongInfo]
-listAllInfo = Command ["listallinfo"] (liftFold p)
+listAllInfo = command "listallinfo" p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 listAll :: T.Text -> Command [Either T.Text T.Text]
-listAll meta = Command ["listall" .+ meta] (liftFold $ L.foldl' p [])
+listAll meta = command ("listall" .+ meta) (L.foldl' p [])
   where
     p z x = case pair x of
       ("file", v) -> Right v : z
       (_,      v) -> Left v  : z
 
 rescan :: Maybe T.Text -> Command Int
-rescan mbPath = Command ["rescan" .+ mbPath] (liftFold p)
+rescan mbPath = command ("rescan" .+ mbPath) p
   where
     p = either undefined fst . head . fmap (T.decimal . snd . pair) -- XXX: ugh
 
 update :: Maybe T.Text -> Command Int
-update mbPath = Command ["update" .+ mbPath] (liftFold p)
+update mbPath = command ("update" .+ mbPath) p
   where
     p = either undefined fst . head . fmap (T.decimal . snd . pair) -- XXX: ugh
 
@@ -153,68 +153,66 @@ type SongId  = Int
 type Seconds = Int
 
 next :: Command ()
-next = Command ["next"] (return ())
+next = command "next" (return ())
 
 play :: Maybe SongPos -> Command ()
-play pos = Command ["play" .+ pos] (return ())
+play pos = command ("play" .+ pos) (return ())
 
 playId :: Maybe SongId -> Command ()
-playId sid = Command ["playid" .+ sid] (return ())
+playId sid = command ("playid" .+ sid) (return ())
 
 previous :: Command ()
-previous = Command ["previous"] (return ())
+previous = command ("previous") (return ())
 
 seekId :: SongId -> Seconds -> Command ()
-seekId sid time = Command ["seekid" .+ sid .+ time] (return ())
+seekId sid time = command ("seekid" .+ sid .+ time) (return ())
 
 stop :: Command ()
-stop = Command ["stop"] (return ())
+stop = command "stop" (return ())
 
 -- Playback options
 
 consume :: Bool -> Command ()
-consume b = Command ["consume" .+ b] (return ())
+consume b = command ("consume" .+ b) (return ())
 
 random :: Bool -> Command ()
-random b = Command ["random" .+ b] (return ())
+random b = command ("random" .+ b) (return ())
 
 repeat :: Bool -> Command ()
-repeat b = Command ["repeat" .+ b] (return ())
+repeat b = command ("repeat" .+ b) (return ())
 
 setVolume :: Int -> Command ()
-setVolume n = Command ["setvol" .+ n] (return ())
+setVolume n = command ("setvol" .+ n) (return ())
 
 single :: Bool -> Command ()
-single b = Command ["single" .+ b] (return ())
+single b = command ("single" .+ b) (return ())
 
 -- Status
 
 currentSong :: Command SongInfo
-currentSong = Command ["currentsong"] (liftFold songInfo)
+currentSong = command "currentsong" songInfo
 
 idle :: [T.Text] -> Command [T.Text]
-idle ss = Command ["idle" .+ ss] (liftFold p)
-  where
-    p = map (snd . pair)
+idle ss = command ("idle" .+ ss) (map (snd . pair))
 
 noidle :: Command ()
-noidle = Command ["noidle"] (return ())
+noidle = command "noidle" (return ())
 
 status :: Command StatusInfo
-status = Command ["status"] (liftFold statusInfo)
+status = command "status" statusInfo
 
 -- Stored playlists
 
 listPlaylistInfo :: T.Text -> Command [SongInfo]
-listPlaylistInfo plName = Command ["listplaylistinfo" .+ plName] (liftFold p)
+listPlaylistInfo plName = command ("listplaylistinfo" .+ plName) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 load :: T.Text -> Command ()
-load path = Command ["load" .+ path] (return ())
+load path = command ("load" .+ path) (return ())
 
 save :: T.Text -> Command ()
-save path = Command ["save" .+ path] (return ())
+save path = command ("save" .+ path) (return ())
 
 ------------------------------------------------------------------------
 -- MPD protocol objects.

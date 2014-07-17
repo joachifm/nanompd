@@ -1,38 +1,35 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
 
 module MPD.Core
   (
-    Command(..)
+    Command
+  , command
   , run
   , runWith
-
-  , Folder
-  , liftFold
-  , id_
   ) where
 
 import MPD.CommandStr (CommandStr, render)
 
-import Control.Applicative (Applicative(..), (<$>), (<|>), empty)
-import Control.Arrow ((***), second)
-import Control.Monad (ap, unless)
-import qualified Data.ByteString.Lazy as LB
+import Control.Applicative (Applicative(..), (<$>))
+import Control.Arrow ((***))
+import Control.Monad (unless)
+import Control.Monad.State.Strict (State, evalState, get, put)
+
 import qualified Data.ByteString      as SB
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified System.IO as IO
-import qualified System.IO.Error as IO
+import qualified Data.ByteString.Lazy as LB
+import qualified Data.Text            as T
+import qualified Data.Text.Encoding   as T
+
 import Network (HostName, PortID(..), connectTo)
+import qualified System.IO       as IO
+import qualified System.IO.Error as IO
 
 ------------------------------------------------------------------------
 
-data Command a = Command
-  { commandReq :: [CommandStr]
-  , commandRes :: Folder a
-  } deriving (Functor)
+data Command a = Command [CommandStr] (State [SB.ByteString] a)
+  deriving (Functor)
 
 instance Applicative Command where
   pure x = Command [] (pure x)
@@ -41,31 +38,11 @@ instance Applicative Command where
   Command q1 p1 <*> Command q2 p2 = Command (q1 ++ q2) (p1 <*> p2)
   {-# INLINE (<*>) #-}
 
-------------------------------------------------------------------------
-
-newtype Folder a = Folder {
-  runFolder :: [SB.ByteString] -> (a, [SB.ByteString])
-  } deriving (Functor)
-
-instance Applicative Folder where
-  pure  = return
-  {-# INLINE pure #-}
-
-  (<*>) = ap
-  {-# INLINE (<*>) #-}
-
-instance Monad Folder where
-  return x = Folder $ \s -> (x, s)
-  {-# INLINE return #-}
-
-  Folder f >>= g = Folder $ (\(!a, r) -> runFolder (g a) r) . f
-  {-# INLINE (>>=) #-}
-
-id_ :: Folder [SB.ByteString]
-id_ = liftFold id
-
-liftFold :: ([SB.ByteString] -> a) -> Folder a
-liftFold f = Folder $ (f *** drop 1) . break (== "list_OK")
+command :: CommandStr -> ([SB.ByteString] -> a) -> Command a
+command q f = Command [q] $ do
+  (a, res) <- (f *** drop 1) . break (== "list_OK") <$> get
+  put res
+  return a
 
 ------------------------------------------------------------------------
 
@@ -88,7 +65,8 @@ runWith host port (Command q p) = do
 
   _ <- IO.tryIOError (SB.hPut hdl "close\n")
   IO.hClose hdl
-  either (fail . T.unpack) (return . fst . runFolder p) res
+
+  either (fail . T.unpack) return (evalState p `fmap` res)
 
 pack :: [T.Text] -> SB.ByteString
 pack = SB.concat . map ((`SB.snoc` 10) . T.encodeUtf8)
