@@ -83,6 +83,11 @@ forAll $ \\x -> toLit (fromLit x) == Just x
 -}
 class (FromLit a, ToLit a) => Lit a
 
+instance Lit Integer
+instance Lit Int
+instance Lit Bool
+instance Lit T.Text
+
 ------------------------------------------------------------------------
 
 instance (FromLit a) => FromLit (Maybe a) where
