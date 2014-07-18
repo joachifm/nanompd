@@ -22,6 +22,7 @@ module MPD.Types
 
     -- * MPD protocol objects
   , SongInfo(..)
+  , viewTag
   , songInfo
   , StatusInfo(..)
   , statusInfo
@@ -159,6 +160,9 @@ instance NFData SongInfo where
           songPos x  `deepseq`
           songLastModified x `deepseq`
           songTags x `deepseq` ()
+
+viewTag :: SongInfo -> SB.ByteString -> Maybe T.Text
+x `viewTag` k = M.lookup k (songTags x)
 
 songInfo :: [SB.ByteString] -> SongInfo
 songInfo = L.foldl' step initial
