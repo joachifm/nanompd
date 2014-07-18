@@ -33,7 +33,6 @@ import MPD.Util
 import Control.Applicative
 import Control.DeepSeq (NFData(..), deepseq)
 import Data.Monoid
-import Data.String
 
 import qualified Data.List as L
 import qualified Data.ByteString as SB
@@ -52,14 +51,6 @@ data Range = Range {-# UNPACK #-} !Int {-# UNPACK #-} !Int
 instance NFData Range where
   rnf (Range a b) = a `seq` b `seq` ()
   {-# INLINE rnf #-}
-
-instance IsString (Maybe Range) where
-  fromString "" = Nothing
-  fromString xs = Just $ fromString xs
-
-instance IsString Range where
-  fromString = (\(from, to) -> Range (read from) (read $ drop 1 to))
-             . break (== ':')
 
 instance FromLit Range where
   fromLit (Range a b) = fromLit a <> ":" <> fromLit b
