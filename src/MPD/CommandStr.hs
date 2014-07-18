@@ -26,6 +26,7 @@ module MPD.CommandStr
 
 import MPD.Lit (FromLit(..))
 
+import Control.DeepSeq
 import Data.Monoid (Monoid(..), (<>))
 import Data.String (IsString(..))
 import qualified Data.Text as T
@@ -49,6 +50,9 @@ An opaque representation of a command string.
 -}
 data CommandStr = CommandStr T.Text [T.Text]
   deriving (Show)
+
+instance NFData CommandStr where
+  rnf (CommandStr a b) = a `deepseq` b `deepseq` ()
 
 {-|
 With @-XOverloadedStrings@, string literals are interpreted
