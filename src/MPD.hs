@@ -41,7 +41,8 @@ import qualified MPD
 import Control.Applicative
 
 foo = do
-  (cur, sta) \<- MPD.run (MPD.add ["music/foo"] *\> MPD.play Nothing *\> ((,) \<$\> MPD.currentSong \<*\> MPD.status))
+  MPD.run (MPD.add ["music/foo"] *> MPD.play Nothing)
+  (cur, sta) \<- MPD.run ((,) \<$\> MPD.currentSong \<*\> MPD.status)
   putStr . unlines $ map show [ cur, sta ]
 @
 -}
