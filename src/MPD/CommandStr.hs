@@ -48,7 +48,7 @@ to 'FromLit' and also to 'ToLit' if the dual is desired.
 {-|
 An opaque representation of a command string.
 -}
-data CommandStr = CommandStr T.Text [T.Text]
+data CommandStr = CommandStr {-# UNPACK #-} !T.Text [T.Text]
   deriving (Show)
 
 instance NFData CommandStr where
