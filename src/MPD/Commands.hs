@@ -29,6 +29,7 @@ module MPD.Commands
 
     -- ** Playback control
   , next
+  , pause
   , play
   , playId
   , previous
@@ -144,6 +145,9 @@ update mbPath = command ("update" .+ mbPath) p
 
 next :: Command ()
 next = command "next" (return ())
+
+pause :: Command ()
+pause = command "pause" (return ())
 
 play :: Maybe SongPos -> Command ()
 play pos = command ("play" .+ pos) (return ())
