@@ -76,6 +76,7 @@ commandRes (Command _ p) = p
 
 run :: Command a -> IO a
 run = runWith "localhost" (PortNumber 6600)
+{-# INLINE run #-}
 
 runWith :: HostName -> PortID -> Command a -> IO a
 runWith host port (Command q p) = bracket open close $ \hdl -> do
