@@ -48,6 +48,7 @@ and so is not decoded.
 -}
 pair :: SB.ByteString -> (SB.ByteString, T.Text)
 pair = second (T.decodeUtf8 . SB.drop 2) . SB.break (== 58)
+{-# INLINE pair #-}
 
 {-|
 A specialised version of 'cyclesWith' for grouping
@@ -64,6 +65,7 @@ identify cycles.
 -}
 cycles :: (Eq k) => [k] -> [(k, e)] -> [[(k, e)]]
 cycles heads = cyclesWith ((`elem` heads) . fst)
+{-# INLINE cycles #-}
 
 {-|
 Group elements into cycles, given a predicate identifying
@@ -79,3 +81,4 @@ cyclesWith p = go
   where
     go []     = []
     go (x:xs) = (\(hd, tl) -> (x : hd) : go tl) (break p xs)
+{-# INLINE cyclesWith #-}
