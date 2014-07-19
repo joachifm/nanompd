@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE CPP               #-}
-{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 {-|
@@ -49,7 +48,10 @@ import qualified System.IO.Error as IO
 -- The 'Command' type.
 
 data Command a = Command [CommandStr] (State [SB.ByteString] a)
-  deriving (Functor)
+
+instance Functor Command where
+  fmap f (Command q p) = Command q (fmap f p)
+  {-# INLINE fmap #-}
 
 instance Applicative Command where
   pure x = Command [] (pure x)
