@@ -50,38 +50,48 @@ class (FromLit a, ToLit a) => Lit a
 
 instance (FromLit a) => FromLit (Maybe a) where
   fromLit = maybe T.empty fromLit
+  {-# INLINE fromLit #-}
 
 instance (FromLit a) => FromLit [a] where
   fromLit = T.unwords . map fromLit
+  {-# INLINE fromLit #-}
 
 instance FromLit Integer where
   fromLit = unparseDecimal
+  {-# INLINE fromLit #-}
 
 instance ToLit Integer where
   toLit = parseDecimal
+  {-# INLINE toLit #-}
 
 instance Lit Integer
 
 instance FromLit Int where
   fromLit = unparseDecimal
+  {-# INLINE fromLit #-}
 
 instance ToLit Int where
   toLit = parseDecimal
+  {-# INLINE toLit #-}
 
 instance Lit Int
 
 instance FromLit Bool where
   fromLit x = T.pack (if x then "1" else "0")
+  {-# INLINE fromLit #-}
 
 instance ToLit Bool where
   toLit = Just . (/= T.pack "0")
+  {-# INLINE toLit #-}
 
 instance Lit Bool
 
 instance FromLit T.Text where
   fromLit x = '"' `T.cons` x `T.snoc` '"'
+  {-# INLINE fromLit #-}
 
 instance ToLit T.Text where
   toLit = Just
+  {-# INLINE toLit #-}
 
 instance Lit T.Text

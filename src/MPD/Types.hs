@@ -55,11 +55,13 @@ instance NFData Range where
 
 instance FromLit Range where
   fromLit (Range a b) = fromLit a <> ":" <> fromLit b
+  {-# INLINE fromLit #-}
 
 instance ToLit Range where
   toLit = (\(from, to) -> Range <$> parseDecimal from
                                 <*> parseDecimal (T.drop 1 to))
         . T.break (== ':')
+  {-# INLINE toLit #-}
 
 ------------------------------------------------------------------------
 -- MPD protocol objects.
@@ -102,6 +104,7 @@ instance NFData StatusInfo where
           statusAudio x           `deepseq`
           statusNextSongPos       `deepseq`
           statusNextSongId        `deepseq` ()
+  {-# INLINE rnf #-}
 
 statusInfo :: [SB.ByteString] -> StatusInfo
 statusInfo = L.foldl' step initial
@@ -160,6 +163,7 @@ instance NFData SongInfo where
           songPos x  `deepseq`
           songLastModified x `deepseq`
           songTags x `deepseq` ()
+  {-# INLINE rnf #-}
 
 viewTag :: SongInfo -> SB.ByteString -> Maybe T.Text
 x `viewTag` k = M.lookup k (songTags x)
