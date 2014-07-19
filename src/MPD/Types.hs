@@ -47,7 +47,7 @@ type Seconds = Int
 type SongId  = Int
 type SongPos = Int
 
-data Range = Range {-# UNPACK #-} !Int {-# UNPACK #-} !Int
+data Range = Range !Int !Int
 
 instance NFData Range where
   rnf (Range a b) = a `seq` b `seq` ()
@@ -65,23 +65,23 @@ instance ToLit Range where
 -- MPD protocol objects.
 
 data StatusInfo = StatusInfo
-  { statusVolume          :: {-# UNPACK #-} !T.Text
-  , statusRepeatEnabled   :: {-# UNPACK #-} !T.Text
-  , statusRandomEnabled   :: {-# UNPACK #-} !T.Text
-  , statusSingleEnabled   :: {-# UNPACK #-} !T.Text
-  , statusConsumeEnabled  :: {-# UNPACK #-} !T.Text
-  , statusPlaylistVersion :: {-# UNPACK #-} !T.Text
-  , statusPlaylistLength  :: {-# UNPACK #-} !T.Text
-  , statusMixrampDb       :: {-# UNPACK #-} !T.Text
-  , statusPlaybackState   :: {-# UNPACK #-} !T.Text
-  , statusSongPos         :: {-# UNPACK #-} !T.Text
-  , statusSongId          :: {-# UNPACK #-} !T.Text
-  , statusTotalTime       :: {-# UNPACK #-} !T.Text
-  , statusElapsedTime     :: {-# UNPACK #-} !T.Text
-  , statusBitrate         :: {-# UNPACK #-} !T.Text
-  , statusAudio           :: {-# UNPACK #-} !T.Text
-  , statusNextSongPos     :: {-# UNPACK #-} !T.Text
-  , statusNextSongId      :: {-# UNPACK #-} !T.Text
+  { statusVolume          :: !T.Text
+  , statusRepeatEnabled   :: !T.Text
+  , statusRandomEnabled   :: !T.Text
+  , statusSingleEnabled   :: !T.Text
+  , statusConsumeEnabled  :: !T.Text
+  , statusPlaylistVersion :: !T.Text
+  , statusPlaylistLength  :: !T.Text
+  , statusMixrampDb       :: !T.Text
+  , statusPlaybackState   :: !T.Text
+  , statusSongPos         :: !T.Text
+  , statusSongId          :: !T.Text
+  , statusTotalTime       :: !T.Text
+  , statusElapsedTime     :: !T.Text
+  , statusBitrate         :: !T.Text
+  , statusAudio           :: !T.Text
+  , statusNextSongPos     :: !T.Text
+  , statusNextSongId      :: !T.Text
   } deriving (Show)
 
 instance NFData StatusInfo where
@@ -147,10 +147,10 @@ statusInfo = L.foldl' step initial
       }
 
 data SongInfo = SongInfo
-  { songFile :: {-# UNPACK #-} !T.Text
-  , songId   :: {-# UNPACK #-} !T.Text
-  , songPos  :: {-# UNPACK #-} !T.Text
-  , songLastModified :: {-# UNPACK #-} !T.Text
+  { songFile :: !T.Text
+  , songId   :: !T.Text
+  , songPos  :: !T.Text
+  , songLastModified :: !T.Text
   , songTags :: !(M.HashMap SB.ByteString T.Text)
   } deriving (Show)
 

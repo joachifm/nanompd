@@ -33,6 +33,7 @@ library
 
   ghc-options:
     -Wall
+    -funbox-strict-fields
 
   ghc-prof-options:
     -auto-all
