@@ -30,3 +30,9 @@ library
     , MPD.Util
 
   other-modules:
+
+  ghc-options:
+    -Wall
+
+  ghc-prof-options:
+    -auto-all
