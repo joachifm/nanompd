@@ -4,9 +4,8 @@ module MPD.CoreSpec (spec) where
 
 import MPD.Core
 
-import Control.Applicative
+import Control.Applicative ((<$>), (<*>))
 import Control.Monad.State.Strict (runState)
-import Data.ByteString (ByteString)
 import Test.Hspec
 
 spec :: Spec
