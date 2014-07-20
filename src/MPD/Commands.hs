@@ -47,6 +47,7 @@ module MPD.Commands
   , find
   , listAll
   , listAllInfo
+  , lsInfo
   , rescan
   , update
 
@@ -129,6 +130,13 @@ listAll meta = command ("listall" .+ meta) (L.foldl' p [])
     p z x = case pair x of
       ("file", v) -> Right v : z
       (_,      v) -> Left v  : z
+
+lsInfo :: Maybe T.Text -> Command [Either (T.Text, T.Text) [(SB.ByteString, T.Text)]]
+lsInfo mbPath = command ("lsinfo" .+ mbPath) p
+  where
+    p = map f . cycles ["directory", "file"] . map pair
+    f [("directory", dirName), ("Last-Modified", lastMod)] = Left (dirName, lastMod)
+    f xs = Right xs
 
 rescan :: Maybe T.Text -> Command Int
 rescan mbPath = command ("rescan" .+ mbPath) p
