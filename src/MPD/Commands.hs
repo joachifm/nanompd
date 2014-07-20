@@ -131,12 +131,17 @@ listAll meta = command ("listall" .+ meta) (L.foldl' p [])
       ("file", v) -> Right v : z
       (_,      v) -> Left v  : z
 
-lsInfo :: Maybe T.Text -> Command [Either (T.Text, T.Text) [(SB.ByteString, T.Text)]]
+lsInfo :: Maybe T.Text -> Command [Either (T.Text, T.Text) SongInfo]
 lsInfo mbPath = command ("lsinfo" .+ mbPath) p
   where
-    p = map f . cycles ["directory", "file"] . map pair
-    f [("directory", dirName), ("Last-Modified", lastMod)] = Left (dirName, lastMod)
-    f xs = Right xs
+    -- XXX: hackintosh ...
+    p = map f . cyclesWith (\x -> "file" `SB.isPrefixOf` x ||
+                                  "directory" `SB.isPrefixOf` x)
+    f (hd:xs) = case pair hd of
+      ("directory", dirName) -> Left (dirName, snd $ pair (head xs))
+      ("file", _)            -> Right $ songInfo (hd:xs)
+      _                      -> error "lsInfo: bogus response"
+    f _ = error "lsInfo: bogus response"
 
 rescan :: Maybe T.Text -> Command Int
 rescan mbPath = command ("rescan" .+ mbPath) p
