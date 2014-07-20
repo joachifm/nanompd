@@ -97,8 +97,7 @@ runWith host port (Command q p) = bracket open close $ \hdl -> do
     close hdl = IO.tryIOError (SB.hPut hdl "close\n") >> IO.hClose hdl
 
 pack :: [T.Text] -> SB.ByteString
-pack = SB.concat
-     . map ((`SB.snoc` 10) . T.encodeUtf8)
+pack = T.encodeUtf8 . T.unlines
      . (++ ["command_list_end"]) . ("command_list_ok_begin" :)
 
 response :: LB.ByteString -> Either T.Text [SB.ByteString]
