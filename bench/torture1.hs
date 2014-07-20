@@ -11,5 +11,5 @@ import Control.Applicative ((<$>), (<*>))
 import Control.Monad (replicateM_)
 
 main :: IO ()
-main = replicateM_ 1000 $
-  run ((,,) <$> listAllInfo <*> status <*> currentSong) >>= ({-# SCC "main/print" #-} print)
+main = replicateM_ 100000 $ do
+  run ((,) <$> status <*> currentSong) >>= print
