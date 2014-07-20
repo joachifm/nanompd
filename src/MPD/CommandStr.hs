@@ -27,7 +27,7 @@ module MPD.CommandStr
 import MPD.Lit (FromLit(..))
 
 import Control.DeepSeq
-import Data.Monoid (Monoid(..), (<>))
+import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import qualified Data.Text as T
 
