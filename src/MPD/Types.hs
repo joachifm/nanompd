@@ -21,9 +21,12 @@ module MPD.Types
   , SongPos
 
     -- * MPD protocol objects
+    -- ** Song information
   , SongInfo(..)
   , viewTag
   , songInfo
+
+    -- ** Status information
   , StatusInfo(..)
   , statusInfo
   ) where
