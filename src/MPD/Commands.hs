@@ -125,7 +125,7 @@ listAllInfo mbPath = command ("listallinfo" .+ mbPath) p
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
 listAll :: T.Text -> Command [Either T.Text T.Text]
-listAll meta = command ("listall" .+ meta) (L.foldl' p [])
+listAll path = command ("listall" .+ path) (L.foldl' p [])
   where
     p z x = case pair x of
       ("file", v) -> Right v : z
