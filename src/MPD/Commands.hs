@@ -124,24 +124,11 @@ listAllInfo mbPath = command ("listallinfo" .+ mbPath) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
-listAll :: T.Text -> Command [Either T.Text T.Text]
-listAll path = command ("listall" .+ path) (L.foldl' p [])
-  where
-    p z x = case pair x of
-      ("file", v) -> Right v : z
-      (_,      v) -> Left v  : z
+listAll :: T.Text -> Command [LsEntry]
+listAll path = command ("listall" .+ path) lsEntry
 
-lsInfo :: Maybe T.Text -> Command [Either (T.Text, T.Text) SongInfo]
-lsInfo mbPath = command ("lsinfo" .+ mbPath) p
-  where
-    -- XXX: hackintosh ...
-    p = map f . cyclesWith (\x -> "file" `SB.isPrefixOf` x ||
-                                  "directory" `SB.isPrefixOf` x)
-    f (hd:xs) = case pair hd of
-      ("directory", dirName) -> Left (dirName, snd $ pair (head xs))
-      ("file", _)            -> Right $ songInfo (hd:xs)
-      _                      -> error "lsInfo: bogus response"
-    f _ = error "lsInfo: bogus response"
+lsInfo :: Maybe T.Text -> Command [LsEntryInfo]
+lsInfo mbPath = command ("lsinfo" .+ mbPath) lsEntryInfo
 
 rescan :: Maybe T.Text -> Command Int
 rescan mbPath = command ("rescan" .+ mbPath) p

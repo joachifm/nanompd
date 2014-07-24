@@ -21,6 +21,12 @@ module MPD.Types
   , SongPos
 
     -- * MPD protocol objects
+    -- ** Listing information
+  , LsEntryInfo(..)
+  , lsEntryInfo
+  , LsEntry(..)
+  , lsEntry
+
     -- ** Song information
   , SongInfo(..)
   , viewTag
@@ -68,6 +74,52 @@ instance ToLit Range where
 
 ------------------------------------------------------------------------
 -- MPD protocol objects.
+
+data LsEntry
+  = LsFile !T.Text
+  | LsDir !T.Text
+  | LsPlaylist !T.Text
+    deriving (Show)
+
+instance NFData LsEntry where
+  rnf x = case x of
+    LsFile name     -> rnf name `seq` ()
+    LsDir name      -> rnf name `seq` ()
+    LsPlaylist name -> rnf name `seq` ()
+
+lsEntry :: [SB.ByteString] -> [LsEntry]
+lsEntry = map f
+  where
+    f x = case pair x of
+      ("file", name)      -> LsFile name
+      ("directory", name) -> LsDir name
+      ("playlist", name)  -> LsPlaylist name
+      (k, v) -> error ("lsEntry: " ++ show k ++ " " ++ show v)
+
+data LsEntryInfo
+  = LsSongInfo !SongInfo
+  | LsDirInfo !T.Text !T.Text
+  | LsPlaylistInfo !T.Text !T.Text
+    deriving (Show)
+
+instance NFData LsEntryInfo where
+  rnf x = case x of
+    LsSongInfo s -> rnf s
+    LsDirInfo d mtime -> rnf d `seq` rnf mtime `seq` ()
+    LsPlaylistInfo d mtime -> rnf d `seq` rnf mtime `seq` ()
+
+lsEntryInfo :: [SB.ByteString] -> [LsEntryInfo]
+lsEntryInfo = map f . cyclesWith p
+  where
+    f x = case pair (head x) of
+      ("directory", dirName) -> LsDirInfo dirName ""
+      ("playlist", plName)   -> LsPlaylistInfo plName ""
+      ("file", _)            -> LsSongInfo (songInfo x)
+      _ -> error ("lsEntryInfo: bogus input: " ++ show x)
+
+    p x = "file" `SB.isPrefixOf` x ||
+          "directory" `SB.isPrefixOf` x ||
+          "playlist" `SB.isPrefixOf` x
 
 data StatusInfo = StatusInfo
   { statusVolume          :: !T.Text
