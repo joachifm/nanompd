@@ -60,7 +60,6 @@ data Range = Range !Int !Int
 
 instance NFData Range where
   rnf (Range a b) = a `seq` b `seq` ()
-  {-# INLINE rnf #-}
 
 instance FromLit Range where
   fromLit (Range a b) = fromLit a <> ":" <> fromLit b
@@ -159,7 +158,6 @@ instance NFData StatusInfo where
           statusAudio x           `deepseq`
           statusNextSongPos       `deepseq`
           statusNextSongId        `deepseq` ()
-  {-# INLINE rnf #-}
 
 statusInfo :: [SB.ByteString] -> StatusInfo
 statusInfo = L.foldl' step initial
@@ -220,7 +218,6 @@ instance NFData SongInfo where
           rnf (songTags x) `seq`
           rnf (songPos x) `seq`
           rnf (songId x) `seq` ()
-  {-# INLINE rnf #-}
 
 viewTag :: SongInfo -> SB.ByteString -> Maybe T.Text
 x `viewTag` k = M.lookup k (songTags x)
