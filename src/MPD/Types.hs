@@ -154,18 +154,19 @@ statusInfo = L.foldl' step initial
 
 data SongInfo = SongInfo
   { songFile :: !T.Text
-  , songId   :: !T.Text
-  , songPos  :: !T.Text
   , songLastModified :: !T.Text
+  , songTime :: !T.Text
   , songTags :: !(M.HashMap SB.ByteString T.Text)
+  , songPos :: !(Maybe T.Text)
+  , songId :: !(Maybe T.Text)
   } deriving (Show)
 
 instance NFData SongInfo where
-  rnf x = songFile x `deepseq`
-          songId x   `deepseq`
-          songPos x  `deepseq`
-          songLastModified x `deepseq`
-          songTags x `deepseq` ()
+  rnf x = rnf (songFile x) `seq`
+          rnf (songLastModified x) `seq`
+          rnf (songTags x) `seq`
+          rnf (songPos x) `seq`
+          rnf (songId x) `seq` ()
   {-# INLINE rnf #-}
 
 viewTag :: SongInfo -> SB.ByteString -> Maybe T.Text
@@ -176,15 +177,15 @@ songInfo = L.foldl' step initial
   where
     step z x = case pair x of
       ("file", v) -> z { songFile = v }
-      ("Id", v)   -> z { songId = v }
-      ("Pos", v)  -> z { songPos = v }
       ("Last-Modified", v) -> z { songLastModified = v }
+      ("Pos", v)  -> z { songPos = Just v }
+      ("Id", v)   -> z { songId = Just v }
       (k, v)      -> z { songTags = M.insert k v (songTags z) }
 
     initial = SongInfo
       { songFile = ""
-      , songId = ""
-      , songPos = ""
       , songLastModified = ""
       , songTags = M.empty
+      , songPos = Nothing
+      , songId = Nothing
       }
