@@ -69,7 +69,6 @@ import MPD.Types
 import MPD.Util
 
 import qualified Data.ByteString as SB
-import qualified Data.List       as L
 import qualified Data.Text       as T
 import qualified Data.Text.Read  as T
 
