@@ -79,14 +79,14 @@ data StatusInfo = StatusInfo
   , statusPlaylistLength  :: !T.Text
   , statusMixrampDb       :: !T.Text
   , statusPlaybackState   :: !T.Text
-  , statusSongPos         :: !T.Text
-  , statusSongId          :: !T.Text
-  , statusTotalTime       :: !T.Text
-  , statusElapsedTime     :: !T.Text
-  , statusBitrate         :: !T.Text
-  , statusAudio           :: !T.Text
-  , statusNextSongPos     :: !T.Text
-  , statusNextSongId      :: !T.Text
+  , statusSongPos         :: !(Maybe T.Text)
+  , statusSongId          :: !(Maybe T.Text)
+  , statusTime            :: !(Maybe T.Text)
+  , statusElapsedTime     :: !(Maybe T.Text)
+  , statusBitrate         :: !(Maybe T.Text)
+  , statusAudio           :: !(Maybe T.Text)
+  , statusNextSongPos     :: !(Maybe T.Text)
+  , statusNextSongId      :: !(Maybe T.Text)
   } deriving (Show)
 
 instance NFData StatusInfo where
@@ -101,7 +101,7 @@ instance NFData StatusInfo where
           statusPlaybackState x   `deepseq`
           statusSongPos x         `deepseq`
           statusSongId x          `deepseq`
-          statusTotalTime x       `deepseq`
+          statusTime x            `deepseq`
           statusElapsedTime x     `deepseq`
           statusBitrate x         `deepseq`
           statusAudio x           `deepseq`
@@ -122,14 +122,14 @@ statusInfo = L.foldl' step initial
       ("playlistlength", v) -> z { statusPlaylistLength = v }
       ("mixrampdb", v)      -> z { statusMixrampDb = v }
       ("state", v)          -> z { statusPlaybackState = v }
-      ("song", v)           -> z { statusSongPos = v }
-      ("songid", v)         -> z { statusSongId = v }
-      ("time", v)           -> z { statusTotalTime = v }
-      ("elapsed", v)        -> z { statusElapsedTime = v }
-      ("bitrate", v)        -> z { statusBitrate = v }
-      ("audio", v)          -> z { statusAudio = v }
-      ("nextsong", v)       -> z { statusNextSongPos = v }
-      ("nextsongid", v)     -> z { statusNextSongId = v }
+      ("song", v)           -> z { statusSongPos = Just v }
+      ("songid", v)         -> z { statusSongId = Just v }
+      ("time", v)           -> z { statusTime = Just v }
+      ("elapsed", v)        -> z { statusElapsedTime = Just v }
+      ("bitrate", v)        -> z { statusBitrate = Just v }
+      ("audio", v)          -> z { statusAudio = Just v }
+      ("nextsong", v)       -> z { statusNextSongPos = Just v }
+      ("nextsongid", v)     -> z { statusNextSongId = Just v }
       (_, _)                -> z
 
     initial = StatusInfo
@@ -142,14 +142,14 @@ statusInfo = L.foldl' step initial
       , statusPlaylistLength = ""
       , statusMixrampDb = ""
       , statusPlaybackState = ""
-      , statusSongPos = ""
-      , statusSongId = ""
-      , statusTotalTime = ""
-      , statusElapsedTime = ""
-      , statusBitrate = ""
-      , statusAudio = ""
-      , statusNextSongPos = ""
-      , statusNextSongId = ""
+      , statusSongPos = Nothing
+      , statusSongId = Nothing
+      , statusTime = Nothing
+      , statusElapsedTime = Nothing
+      , statusBitrate = Nothing
+      , statusAudio = Nothing
+      , statusNextSongPos = Nothing
+      , statusNextSongId = Nothing
       }
 
 data SongInfo = SongInfo
@@ -164,6 +164,7 @@ data SongInfo = SongInfo
 instance NFData SongInfo where
   rnf x = rnf (songFile x) `seq`
           rnf (songLastModified x) `seq`
+          rnf (songTime x) `seq`
           rnf (songTags x) `seq`
           rnf (songPos x) `seq`
           rnf (songId x) `seq` ()
@@ -178,6 +179,7 @@ songInfo = L.foldl' step initial
     step z x = case pair x of
       ("file", v) -> z { songFile = v }
       ("Last-Modified", v) -> z { songLastModified = v }
+      ("Time", v) -> z { songTime = v }
       ("Pos", v)  -> z { songPos = Just v }
       ("Id", v)   -> z { songId = Just v }
       (k, v)      -> z { songTags = M.insert k v (songTags z) }
@@ -185,6 +187,7 @@ songInfo = L.foldl' step initial
     initial = SongInfo
       { songFile = ""
       , songLastModified = ""
+      , songTime = ""
       , songTags = M.empty
       , songPos = Nothing
       , songId = Nothing
