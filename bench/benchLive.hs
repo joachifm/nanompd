@@ -11,7 +11,7 @@ import MPD
 import Criterion.Main (defaultMain, bench, nfIO)
 
 main = defaultMain
-  [ bench "listallinfo"    $ nfIO (run listAllInfo)
+  [ bench "listallinfo"    $ nfIO (run $ listAllInfo Nothing)
   , bench "currentsong"    $ nfIO (run currentSong)
   , bench "ping"           $ nfIO (run ping)
   , bench "plChangesPosId" $ nfIO (run $ plChangesPosId 1)

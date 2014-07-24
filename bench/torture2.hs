@@ -12,5 +12,5 @@ import Control.Monad (replicateM_)
 
 main :: IO ()
 main = replicateM_ 100 $ do
-  run listAllInfo >>= print
+  run (listAllInfo Nothing) >>= print
 

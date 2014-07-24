@@ -119,8 +119,8 @@ find meta value = command ("find" .+ meta .+ value) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
-listAllInfo :: Command [SongInfo]
-listAllInfo = command "listallinfo" p
+listAllInfo :: Maybe T.Text -> Command [SongInfo]
+listAllInfo mbPath = command ("listallinfo" .+ mbPath) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
