@@ -22,7 +22,6 @@ module MPD.Types
   , SongId
   , SongPos
   , SubsystemName
-  , T.Text
   , Volume
 
     -- * MPD protocol objects
@@ -40,6 +39,9 @@ module MPD.Types
     -- ** Status information
   , StatusInfo(..)
   , statusInfo
+
+    -- * Re-exports
+  , T.Text
   ) where
 
 import MPD.Lit

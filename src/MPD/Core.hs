@@ -20,6 +20,11 @@ module MPD.Core
   , command
   , run
   , runWith
+
+    -- * Re-exports
+  , HostName
+  , PortID(..)
+
 #ifdef TESTING
   , commandRes
   , pack

@@ -22,7 +22,7 @@ module MPD
   ) where
 
 import MPD.Commands
-import MPD.Core (Command, run, runWith)
+import MPD.Core (Command, HostName, PortID(..), run, runWith)
 import MPD.Types
   (
     Label
@@ -32,6 +32,7 @@ import MPD.Types
   , SongPos
   , SongId
   , SubsystemName
+  , Text
   , Volume
 
   , LsEntry(..)
