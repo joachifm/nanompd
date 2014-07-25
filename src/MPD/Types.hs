@@ -94,9 +94,9 @@ data LsEntry
 
 instance NFData LsEntry where
   rnf x = case x of
-    LsFile name     -> rnf name `seq` ()
-    LsDir name      -> rnf name `seq` ()
-    LsPlaylist name -> rnf name `seq` ()
+    LsFile name     -> rnf name
+    LsDir name      -> rnf name
+    LsPlaylist name -> rnf name
 
 lsEntry :: [SB.ByteString] -> [LsEntry]
 lsEntry = map f
@@ -115,9 +115,9 @@ data LsEntryInfo
 
 instance NFData LsEntryInfo where
   rnf x = case x of
-    LsSongInfo s -> rnf s
-    LsDirInfo d mtime -> rnf d `seq` rnf mtime `seq` ()
-    LsPlaylistInfo d mtime -> rnf d `seq` rnf mtime `seq` ()
+    LsSongInfo s           -> rnf s
+    LsDirInfo d mtime      -> rnf d `seq` rnf mtime
+    LsPlaylistInfo d mtime -> rnf d `seq` rnf mtime
 
 lsEntryInfo :: [SB.ByteString] -> [LsEntryInfo]
 lsEntryInfo = map f . cyclesWith p
