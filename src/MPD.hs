@@ -25,10 +25,15 @@ import MPD.Commands
 import MPD.Core (Command, run, runWith)
 import MPD.Types
   (
-    Range
+    Label
+  , Path
+  , Range
   , Seconds
   , SongPos
   , SongId
+  , SubsystemName
+  , Volume
+
   , LsEntry(..)
   , LsEntryInfo(..)
   , SongInfo(..)

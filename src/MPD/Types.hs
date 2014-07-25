@@ -15,10 +15,15 @@ Protocol scalars and objects.
 module MPD.Types
   (
     -- * Scalars
-    Range
+    Label
+  , Path
+  , Range
   , Seconds
   , SongId
   , SongPos
+  , SubsystemName
+  , T.Text
+  , Volume
 
     -- * MPD protocol objects
     -- ** Listing information
@@ -52,9 +57,14 @@ import qualified Data.Text as T
 ------------------------------------------------------------------------
 -- Scalars
 
+type Label   = SB.ByteString
+type Path    = T.Text
 type Seconds = Int
 type SongId  = Int
 type SongPos = Int
+type Volume  = Int
+
+type SubsystemName = T.Text
 
 data Range = Range !Int !Int
 
@@ -75,9 +85,9 @@ instance ToLit Range where
 -- MPD protocol objects.
 
 data LsEntry
-  = LsFile !T.Text
-  | LsDir !T.Text
-  | LsPlaylist !T.Text
+  = LsFile !Path
+  | LsDir !Path
+  | LsPlaylist !Path
     deriving (Show)
 
 instance NFData LsEntry where
@@ -97,8 +107,8 @@ lsEntry = map f
 
 data LsEntryInfo
   = LsSongInfo !SongInfo
-  | LsDirInfo !T.Text !T.Text
-  | LsPlaylistInfo !T.Text !T.Text
+  | LsDirInfo !Path !T.Text
+  | LsPlaylistInfo !Path !T.Text
     deriving (Show)
 
 instance NFData LsEntryInfo where
@@ -203,10 +213,10 @@ statusInfo = L.foldl' step initial
       }
 
 data SongInfo = SongInfo
-  { songFile :: !T.Text
+  { songFile :: !Path
   , songLastModified :: !T.Text
   , songTime :: !T.Text
-  , songTags :: !(M.HashMap SB.ByteString T.Text)
+  , songTags :: !(M.HashMap Label T.Text)
   , songPos :: !(Maybe T.Text)
   , songId :: !(Maybe T.Text)
   } deriving (Show)
@@ -219,7 +229,7 @@ instance NFData SongInfo where
           rnf (songPos x) `seq`
           rnf (songId x) `seq` ()
 
-viewTag :: SongInfo -> SB.ByteString -> Maybe T.Text
+viewTag :: SongInfo -> Label -> Maybe T.Text
 x `viewTag` k = M.lookup k (songTags x)
 
 songInfo :: [SB.ByteString] -> SongInfo

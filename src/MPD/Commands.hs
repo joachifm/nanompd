@@ -83,10 +83,10 @@ ping = command "ping" (return ())
 ------------------------------------------------------------------------
 -- Current playlist
 
-add :: T.Text -> Command ()
+add :: Path -> Command ()
 add uri = command ("add" .+ uri) (return ())
 
-addId :: T.Text -> Maybe SongPos -> Command SongId
+addId :: Path -> Maybe SongPos -> Command SongId
 addId uri pos = command ("addid" .+ uri .+ pos) p
   where
     p = either undefined fst . head . fmap (T.decimal . snd . pair) -- XXX: ugh
@@ -102,7 +102,7 @@ playlistInfo = command "playlistinfo" p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
-plChangesPosId :: Integer -> Command [(SB.ByteString, T.Text)]
+plChangesPosId :: Integer -> Command [(Label, T.Text)]
 plChangesPosId ver = command ("plchangesposid" .+ ver) p
   where
     p = concatMap (map pair) . cyclesWith ("cpos" `SB.isPrefixOf`)
@@ -118,23 +118,23 @@ find meta value = command ("find" .+ meta .+ value) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
-listAllInfo :: Maybe T.Text -> Command [SongInfo]
+listAllInfo :: Maybe Path -> Command [SongInfo]
 listAllInfo mbPath = command ("listallinfo" .+ mbPath) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
-listAll :: T.Text -> Command [LsEntry]
+listAll :: Path -> Command [LsEntry]
 listAll path = command ("listall" .+ path) lsEntry
 
-lsInfo :: Maybe T.Text -> Command [LsEntryInfo]
+lsInfo :: Maybe Path -> Command [LsEntryInfo]
 lsInfo mbPath = command ("lsinfo" .+ mbPath) lsEntryInfo
 
-rescan :: Maybe T.Text -> Command Int
+rescan :: Maybe Path -> Command Int
 rescan mbPath = command ("rescan" .+ mbPath) p
   where
     p = either undefined fst . head . fmap (T.decimal . snd . pair) -- XXX: ugh
 
-update :: Maybe T.Text -> Command Int
+update :: Maybe Path -> Command Int
 update mbPath = command ("update" .+ mbPath) p
   where
     p = either undefined fst . head . fmap (T.decimal . snd . pair) -- XXX: ugh
@@ -175,7 +175,7 @@ random b = command ("random" .+ b) (return ())
 repeat :: Bool -> Command ()
 repeat b = command ("repeat" .+ b) (return ())
 
-setVolume :: Int -> Command ()
+setVolume :: Volume -> Command ()
 setVolume n = command ("setvol" .+ n) (return ())
 
 single :: Bool -> Command ()
@@ -187,7 +187,7 @@ single b = command ("single" .+ b) (return ())
 currentSong :: Command SongInfo
 currentSong = command "currentsong" songInfo
 
-idle :: [T.Text] -> Command [T.Text]
+idle :: [SubsystemName] -> Command [SubsystemName]
 idle ss = command ("idle" .+ ss) (map (snd . pair))
 
 noidle :: Command ()
@@ -199,13 +199,13 @@ status = command "status" statusInfo
 ------------------------------------------------------------------------
 -- Stored playlists
 
-listPlaylistInfo :: T.Text -> Command [SongInfo]
+listPlaylistInfo :: Path -> Command [SongInfo]
 listPlaylistInfo plName = command ("listplaylistinfo" .+ plName) p
   where
     p = map songInfo . cyclesWith ("file" `SB.isPrefixOf`)
 
-load :: T.Text -> Command ()
+load :: Path -> Command ()
 load path = command ("load" .+ path) (return ())
 
-save :: T.Text -> Command ()
+save :: Path -> Command ()
 save path = command ("save" .+ path) (return ())
