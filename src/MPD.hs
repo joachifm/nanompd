@@ -23,7 +23,18 @@ module MPD
 
 import MPD.Commands
 import MPD.Core (Command, run, runWith)
-import MPD.Types (Range, Seconds, SongId, LsEntry(..), LsEntryInfo(..), SongInfo(..), viewTag, SongPos, StatusInfo(..))
+import MPD.Types
+  (
+    Range
+  , Seconds
+  , SongPos
+  , SongId
+  , LsEntry(..)
+  , LsEntryInfo(..)
+  , SongInfo(..)
+  , viewTag
+  , StatusInfo(..)
+  )
 
 {-$usage
 
