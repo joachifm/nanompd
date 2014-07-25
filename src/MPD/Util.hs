@@ -53,21 +53,23 @@ pair = second (T.decodeUtf8 . SB.drop 2) . SB.break (== 58)
 {-# INLINE pair #-}
 
 {-|
-A specialised version of 'cyclesWith' for grouping
-association lists, using a given list of keys to
-identify cycles.
+A version of 'cyclesWith' more convenient for
+multiple heads.
 
 >>> cycles ["file", "outputid"]
-           [ ("file", "foo.mp3")
-           , ("Artist", "Foo")
-           , ("outputid", "0")
-           , ("outputenabled", "1")
-           ] == [ [("file", "foo.mp3"), ("Artist", "Foo")]
-                , [("outputid", "0"), ("outputenabled", "1")] ]
+           [ "file: foo.mp3"
+           , "Artist: Foo"
+           , "outputid: 0"
+           , "outputenabled: 1"
+           ] == [ [ "file: foo.mp3", "Artist: Foo" ]
+                , [ "outputid: 0", "outputenabled: 1" ]
+                ]
 -}
-cycles :: (Eq k) => [k] -> [(k, e)] -> [[(k, e)]]
-cycles heads = cyclesWith ((`elem` heads) . fst)
-{-# INLINE cycles #-}
+cycles :: [SB.ByteString] -> [SB.ByteString] -> [[SB.ByteString]]
+cycles heads = cyclesWith p
+  where
+    p x = or (map (flip SB.isPrefixOf x) heads)
+{-# INLINABLE cycles #-}
 
 {-|
 Group elements into cycles, given a predicate identifying
