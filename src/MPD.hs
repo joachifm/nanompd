@@ -1,3 +1,5 @@
+{-# LANGUAGE Trustworthy #-}
+
 {-|
 Module      : MPD
 Copyright   : (c) Joachim Fasting

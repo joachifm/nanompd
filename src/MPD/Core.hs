@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE CPP               #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Trustworthy       #-}
 
 {-|
 Module      : MPD.Core

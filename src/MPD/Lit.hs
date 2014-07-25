@@ -1,3 +1,5 @@
+{-# LANGUAGE Safe #-}
+
 {-|
 Module      : MPD.Lit
 Copyright   : (c) Joachim Fasting
