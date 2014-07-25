@@ -29,7 +29,7 @@ by MPD.
 -}
 parseDecimal :: (Integral a) => T.Text -> Maybe a
 parseDecimal = either (const Nothing) (Just . fst) . T.decimal
-{-# INLINE parseDecimal #-}
+{-# INLINABLE parseDecimal #-}
 
 {-|
 Unparse a decimal value, as it would be transmitted
@@ -50,7 +50,7 @@ and so is not decoded.
 -}
 pair :: SB.ByteString -> (SB.ByteString, T.Text)
 pair = second (T.decodeUtf8 . SB.drop 2) . SB.break (== 58)
-{-# INLINE pair #-}
+{-# INLINABLE pair #-}
 
 {-|
 A version of 'cyclesWith' more convenient for
@@ -85,4 +85,4 @@ cyclesWith p = go
   where
     go []     = []
     go (x:xs) = (\(hd, tl) -> (x : hd) : go tl) (break p xs)
-{-# INLINE cyclesWith #-}
+{-# INLINABLE cyclesWith #-}
