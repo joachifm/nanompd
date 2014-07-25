@@ -68,7 +68,7 @@ CommandStr name xs <> CommandStr _ ys = CommandStr name (xs <> ys)
 @
 -}
 instance Monoid CommandStr where
-  CommandStr n xs `mappend` CommandStr _ ys = CommandStr n (xs ++ ys)
+  CommandStr n xs `mappend` CommandStr _ ys = CommandStr n (xs `mappend` ys)
   {-# INLINE mappend #-}
 
   mempty = CommandStr mempty []
