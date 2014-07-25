@@ -53,7 +53,6 @@ data CommandStr = CommandStr !T.Text [T.Text]
 
 instance NFData CommandStr where
   rnf (CommandStr a b) = a `deepseq` b `deepseq` ()
-  {-# INLINE rnf #-}
 
 {-|
 With @-XOverloadedStrings@, string literals are interpreted
