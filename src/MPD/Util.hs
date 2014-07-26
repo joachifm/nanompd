@@ -66,9 +66,7 @@ multiple heads.
                 ]
 -}
 cycles :: [SB.ByteString] -> [SB.ByteString] -> [[SB.ByteString]]
-cycles heads = cyclesWith p
-  where
-    p x = or (map (flip SB.isPrefixOf x) heads)
+cycles heads = cyclesWith (\x -> any (`SB.isPrefixOf` x) heads)
 {-# INLINABLE cycles #-}
 
 {-|
