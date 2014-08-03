@@ -86,7 +86,7 @@ run = runWith "localhost" (PortNumber 6600)
 
 runWith :: HostName -> PortID -> Command a -> IO a
 runWith host port (Command q p) = bracket open close $ \hdl -> do
-  SB.hPut hdl (pack $ map render q)
+  SB.hPut hdl (pack q)
   !res <- response `fmap` LB.hGetContents hdl
   either (fail . T.unpack) return (evalState p `fmap` res)
   where
@@ -102,9 +102,10 @@ runWith host port (Command q p) = bracket open close $ \hdl -> do
 
     close hdl = IO.tryIOError (SB.hPut hdl "close\n") >> IO.hClose hdl
 
-pack :: [T.Text] -> SB.ByteString
+pack :: [CommandStr] -> SB.ByteString
 pack = T.encodeUtf8 . T.unlines
      . (++ ["command_list_end"]) . ("command_list_ok_begin" :)
+     . map render
 
 response :: LB.ByteString -> Either T.Text [SB.ByteString]
 response = step . map LB.toStrict . LB.split 10
