@@ -49,7 +49,7 @@ import MPD.Lit
 import MPD.Util
 
 import Control.Applicative
-import Control.DeepSeq (NFData(..), deepseq)
+import Control.DeepSeq (NFData(..))
 import Data.Monoid
 
 import qualified Data.List as L
@@ -72,7 +72,7 @@ type SubsystemName = T.Text
 data Range = Range !Int !Int
 
 instance NFData Range where
-  rnf (Range a b) = a `seq` b `seq` ()
+  rnf (Range a b) = rnf a `seq` rnf b
 
 instance FromLit Range where
   fromLit (Range a b) = fromLit a <> ":" <> fromLit b
@@ -154,23 +154,23 @@ data StatusInfo = StatusInfo
   } deriving (Show)
 
 instance NFData StatusInfo where
-  rnf x = statusVolume x          `deepseq`
-          statusRepeatEnabled x   `deepseq`
-          statusRandomEnabled x   `deepseq`
-          statusSingleEnabled x   `deepseq`
-          statusConsumeEnabled x  `deepseq`
-          statusPlaylistVersion x `deepseq`
-          statusPlaylistLength x  `deepseq`
-          statusMixrampDb x       `deepseq`
-          statusPlaybackState x   `deepseq`
-          statusSongPos x         `deepseq`
-          statusSongId x          `deepseq`
-          statusTime x            `deepseq`
-          statusElapsedTime x     `deepseq`
-          statusBitrate x         `deepseq`
-          statusAudio x           `deepseq`
-          statusNextSongPos       `deepseq`
-          statusNextSongId        `deepseq` ()
+  rnf x = rnf (statusVolume x)          `seq`
+          rnf (statusRepeatEnabled x)   `seq`
+          rnf (statusRandomEnabled x)   `seq`
+          rnf (statusSingleEnabled x)   `seq`
+          rnf (statusConsumeEnabled x)  `seq`
+          rnf (statusPlaylistVersion x) `seq`
+          rnf (statusPlaylistLength x)  `seq`
+          rnf (statusMixrampDb x)       `seq`
+          rnf (statusPlaybackState x)   `seq`
+          rnf (statusSongPos x)         `seq`
+          rnf (statusSongId x)          `seq`
+          rnf (statusTime x)            `seq`
+          rnf (statusElapsedTime x)     `seq`
+          rnf (statusBitrate x)         `seq`
+          rnf (statusAudio x)           `seq`
+          rnf (statusNextSongPos x)     `seq`
+          rnf (statusNextSongId x)
 
 statusInfo :: [SB.ByteString] -> StatusInfo
 statusInfo = L.foldl' step initial
@@ -230,7 +230,7 @@ instance NFData SongInfo where
           rnf (songTime x) `seq`
           rnf (songTags x) `seq`
           rnf (songPos x) `seq`
-          rnf (songId x) `seq` ()
+          rnf (songId x)
 
 viewTag :: SongInfo -> Label -> Maybe T.Text
 x `viewTag` k = M.lookup k (songTags x)
