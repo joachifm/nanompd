@@ -159,7 +159,7 @@ previous :: Command ()
 previous = command "previous" (return ())
 
 seekId :: SongId -> Seconds -> Command ()
-seekId sid time = command ("seekid" .+ sid .+ time) (return ())
+seekId sid dest = command ("seekid" .+ sid .+ dest) (return ())
 
 stop :: Command ()
 stop = command "stop" (return ())
