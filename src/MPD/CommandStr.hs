@@ -54,7 +54,7 @@ data CommandStr = CommandStr !T.Text [T.Text]
   deriving (Show)
 
 instance NFData CommandStr where
-  rnf (CommandStr a b) = a `deepseq` b `deepseq` ()
+  rnf (CommandStr a b) = rnf a `seq` rnf b
 
 {-|
 With @-XOverloadedStrings@, string literals are interpreted
