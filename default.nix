@@ -13,7 +13,7 @@
 # The set is made recursive so that we can refer to `buildDepends` in
 # the definition of `testDepends`.
 
-{ haskellPackages ? (import <nixpkgs>{}).haskellPackages_ghc782.profiling }:
+{ haskellPackages ? (import <nixpkgs>{}).haskellPackages_ghc783_profiling }:
 with haskellPackages; cabal.mkDerivation (self: rec {
   pname = "mpd";
   version = "0.0.0.0";
