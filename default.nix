@@ -20,7 +20,7 @@ with haskellPackages; cabal.mkDerivation (self: rec {
   src = ./.;
   propagatedBuildDepends = [ cabalInstall ];
   buildDepends = [
-    cabalInstall deepseq mtl network text unorderedContainers
+    cabalInstall errors mtl network
   ];
   testDepends = buildDepends;
   doCheck = false;

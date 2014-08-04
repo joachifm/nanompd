@@ -8,11 +8,11 @@ Warning: make sure to compare runs between identical environments
 module Main (main) where
 
 import MPD
-import Criterion.Main (defaultMain, bench, nfIO)
+import Criterion.Main (defaultMain, bench, whnfIO)
 
 main = defaultMain
   [
-    bench "ping"           $ nfIO (run ping)
-  , bench "currentsong"    $ nfIO (run currentSong)
-  , bench "listallinfo"    $ nfIO (run $ listAllInfo Nothing)
+    bench "ping"           $ whnfIO (runClientT . run $ ping)
+  , bench "currentsong"    $ whnfIO (runClientT . run $ currentSong)
+  , bench "listallinfo"    $ whnfIO (runClientT . run $ listAllInfo Nothing)
   ]

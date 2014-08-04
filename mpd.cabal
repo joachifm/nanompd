@@ -13,21 +13,12 @@ library
 
   build-depends:
       base
-    , bytestring
-    , deepseq
+    , errors
     , mtl
     , network
-    , text
-    , unordered-containers
 
   exposed-modules:
       MPD
-    , MPD.Core
-    , MPD.Commands
-    , MPD.CommandStr
-    , MPD.Lit
-    , MPD.Types
-    , MPD.Util
 
   other-modules:
 
@@ -46,12 +37,9 @@ test-suite specs
 
   build-depends:
       base
-    , bytestring
-    , deepseq
+    , errors
     , mtl
     , network
-    , text
-    , unordered-containers
 
     , hspec
 

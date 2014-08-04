@@ -8,8 +8,8 @@ module Main (main) where
 import MPD
 
 import Control.Applicative ((<$>), (<*>))
-import Control.Monad (replicateM_)
+import Control.Monad (replicateM_, void)
 
 main :: IO ()
-main = replicateM_ 100000 $ do
-  run ((,) <$> status <*> currentSong) >>= print
+main = void $ replicateM_ 100000 $ do
+  (runClientT . run) ((,) <$> status <*> currentSong) >>= print
