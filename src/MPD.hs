@@ -411,8 +411,9 @@ type Seconds = Int
 type SongId = Int
 type SongPos = Int
 type Volume = Int
+type SubsystemName = Plain
+type PlaybackState = String
 
--- XXX: a temporary work-around while we're using 'String'.
 newtype Plain = Plain String deriving (Show)
 
 instance IsString Plain where
@@ -434,8 +435,6 @@ instance CommandArg Path where
 
 pathP :: String -> Either String Path
 pathP = Right . Path
-
-type SubsystemName = Plain
 
 newtype Range = Range (Int, Int)
 
@@ -466,8 +465,6 @@ lsEntryInfo =
   (LsDirInfo <$> field "directory" pathP <*> field "Last-Modified" textP) <|>
   (LsPlaylistInfo <$> field "playlist" pathP
                   <*> field "Last-Modified" textP)
-
-type PlaybackState = String
 
 data StatusInfo = StatusInfo
   { _statusVolume :: Volume
