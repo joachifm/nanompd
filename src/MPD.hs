@@ -65,6 +65,7 @@ module MPD
   , LsEntry(..)
   , LsEntryInfo(..)
   , SongInfo(..)
+  , viewTag
   , StatusInfo(..)
 
     -- ** Internal parsers
@@ -525,6 +526,9 @@ data SongInfo = SongInfo
   , _songPos :: Maybe SongPos
   , _songId :: Maybe SongId
   } deriving (Show)
+
+viewTag :: SongInfo -> Label -> Maybe Plain
+viewTag si l = lookup l (_songTags si)
 
 songInfo :: Parser SongInfo
 songInfo = SongInfo <$>
