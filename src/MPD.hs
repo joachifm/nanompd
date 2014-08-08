@@ -132,6 +132,7 @@ module MPD
   ) where
 
 import Control.Applicative
+import Control.Arrow (second)
 import Control.Error (EitherT, runEitherT, left, right)
 import Control.Monad (MonadPlus(..), ap, unless)
 import Control.Monad.State (State, runState, get, put)
@@ -289,55 +290,40 @@ field k v = fmap snd (fieldK k v)
 ------------------------------------------------------------------------
 -- Connection primitives.
 
+connIO :: (MonadIO m) => IO a -> ClientT m a
+connIO m = either (left . ConnError) return =<< liftIO (tryIOError m)
+
 recv :: (MonadIO m) => Handle -> ClientT m [String]
 recv hdl = go
   where
     go = do
-      el <- liftIO (tryIOError $ hGetLine hdl)
-      case el of
-        Left e -> left $ ConnError e
-        Right ln ->
-          if ln == "OK"
-            then right []
-          else if "ACK" `List.isPrefixOf` ln
-            then left $ ProtocolError (List.drop 4 ln)
-          else fmap (ln :) go
+      ln <- connIO (hGetLine hdl)
+      if ln == "OK"
+        then right []
+      else if "ACK" `List.isPrefixOf` ln
+        then left $ ProtocolError (List.drop 4 ln)
+      else fmap (ln :) go
 
 send :: (MonadIO m) => Handle -> [String] -> ClientT m ()
-send hdl q = do
-  el <- liftIO (tryIOError $ hPutStr hdl q')
-  case el of
-    Left e   -> left $ ConnError e
-    Right () -> right ()
+send hdl q = connIO (hPutStr hdl q')
   where
     q' = unlines $ "command_list_ok_begin" : q ++ ["command_list_end"]
 
 getResponse :: (MonadIO m) => Handle -> [String] -> Parser a -> ClientT m a
 getResponse hdl q p = do
   send hdl q
-  res <- recv hdl
-  case parse p res of
-    Left e  -> left $ ParseError e
-    Right x -> right x
+  either (left . ParseError) right =<< (parse p `fmap` recv hdl)
 
 open :: (MonadIO m) => HostName -> PortID -> ClientT m (Handle, String)
 open host port = do
-  ehdl <- liftIO (tryIOError $ connectTo host port)
-  case ehdl of
-    Left e  -> left (ConnError e)
-    Right hdl -> do
-      ever <- liftIO (tryIOError $ hGetLine hdl)
-      case ever of
-        Left e -> left (ConnError e)
-        Right ver -> do
-          unless ("OK MPD " `List.isPrefixOf` ver) $
-            left InvalidHost
-          return (hdl, ver)
+  hdl <- connIO (connectTo host port)
+  ver <- connIO (hGetLine hdl)
+  unless ("OK MPD " `List.isPrefixOf` ver) $
+    left InvalidHost
+  return (hdl, ver)
 
 close :: (MonadIO m) => Handle -> ClientT m ()
-close hdl = void $ liftIO $ tryIOError $ do
-  hPutStrLn hdl "close"
-  hClose hdl
+close hdl = connIO (hPutStr hdl "close\n") >> connIO (hClose hdl)
 
 withConn
   :: (MonadIO m)
@@ -403,10 +389,9 @@ instance Applicative Command where
 
 command :: CommandStr -> Parser a -> Command a
 command q p = Command [q] $ P $ do
-  ls <- get
-  let (hd, tl) = List.break (== "list_OK") ls
+  (hd, tl) <- second (List.drop 1) . List.break (== "list_OK") <$> get
   rv <- (put hd >> runP p)
-  put (List.drop 1 tl)
+  put tl
   return rv
 
 runWith :: HostName -> PortID -> Command a -> ClientT IO a
