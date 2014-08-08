@@ -34,6 +34,7 @@ module MPD
   , Command
   , command
   , run
+  , runWith
 
     -- * Convenient syntax for protocol command strings
   , CommandStr
@@ -407,9 +408,13 @@ command q p = Command [q] $ P $ do
   put (List.drop 1 tl)
   return rv
 
-run :: Command a -> ClientT IO a
-run (Command q p) = withConn "localhost" (PortNumber 6600) $ \hdl ->
+runWith :: HostName -> PortID -> Command a -> ClientT IO a
+runWith host port (Command q p) = withConn host port $ \hdl ->
   getResponse hdl (map render q) p
+
+run :: Command a -> ClientT IO a
+run = runWith "localhost" (PortNumber 6600)
+{-# INLINE run #-}
 
 ------------------------------------------------------------------------
 -- Protocol objects.
