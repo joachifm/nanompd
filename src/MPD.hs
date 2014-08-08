@@ -5,7 +5,7 @@
 
 {-|
 Module      : MPD
-Description : Scripting MPD interactions
+Description : Scripting client interactions with MPD
 Copyright   : (c) Joachim Fasting, 2014
 
 License     : MIT
@@ -13,8 +13,9 @@ Maintainer  : joachifm@fastmail.fm
 Stability   : unstable
 Portability : unportable
 
-This module exposes all functionality provided by the library,
-both for users and client implementors.
+This module exports types and functions for scripting
+client interactions with a running instance of MPD, the
+music player daemon.
 -}
 
 module MPD
@@ -162,15 +163,15 @@ MPD.run ((,) \<$\> MPD.currentSong \<*\> MPD.status)
 
 {-$extending
 Define new commands with 'command', a smart constructor which
-takes a protocol command string and a parser.
+takes a protocol command string and a parser for the response.
 Consult the MPD specification for the syntax used by a particular
 command.
 
 Command parsers operate only on the response pertaining to a
 particular command (modulo the command list delimiter).
 
-For protocol objects, define a corresponding record structure and
-parse it by composing 'field' and appropriate value parsers.
+Protocol objects are @key\/value@ pairs and are parsed into a
+corresponding record structure by composing 'field' parsers.
 See e.g., 'songInfo' and 'statusInfo'.
 
 With @-XOverloadedStrings@, there is a convenient syntax for building
