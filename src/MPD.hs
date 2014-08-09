@@ -55,8 +55,8 @@ module MPD
     -- * Protocol objects
   , Date
   , Label
-  , Path
-  , Plain
+  , Path(..)
+  , Plain(..)
   , Seconds
   , SongId
   , SongPos
