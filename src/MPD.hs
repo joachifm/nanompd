@@ -321,7 +321,7 @@ open host port = do
   return (hdl, ver)
 
 close :: (MonadIO m) => Handle -> ClientT m ()
-close hdl = connIO (hPutStr hdl "close\n") >> connIO (hClose hdl)
+close hdl = void . liftIO $ tryIOError (hPutStr hdl "close\n" >> hClose hdl)
 
 withConn
   :: (MonadIO m)
