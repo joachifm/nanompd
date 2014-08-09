@@ -135,7 +135,7 @@ import Control.Applicative
 import Control.Arrow (second)
 import Control.Error (EitherT, runEitherT, left, right)
 import Control.Monad (MonadPlus(..), ap, unless)
-import Control.Monad.State (State, runState, get, put)
+import Control.Monad.State (State, evalState, get, put)
 import Control.Monad.Trans (MonadIO(..))
 import Data.Functor (void)
 import Data.Monoid (Monoid(..))
@@ -236,10 +236,7 @@ instance Alternative Parser where
   (<|>) = mplus
 
 parse :: Parser a -> [String] -> Either String a
-parse p input =
-  case runState (runP p) input of
-    (Right x, _) -> Right x
-    (Left e, _)  -> Left e
+parse p = evalState (runP p)
 
 ------------------------------------------------------------------------
 
