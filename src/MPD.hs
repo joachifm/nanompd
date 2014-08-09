@@ -315,7 +315,8 @@ open :: (MonadIO m) => HostName -> PortID -> ClientT m (Handle, String)
 open host port = do
   hdl <- connIO (connectTo host port)
   ver <- connIO (hGetLine hdl)
-  unless ("OK MPD " `List.isPrefixOf` ver) $
+  unless ("OK MPD " `List.isPrefixOf` ver) $ do
+    close hdl
     left InvalidHost
   return (hdl, ver)
 
