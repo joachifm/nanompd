@@ -412,7 +412,7 @@ type Volume = Int
 type SubsystemName = Plain
 type PlaybackState = String
 
-newtype Plain = Plain String deriving (Show)
+newtype Plain = Plain { unPlain :: String } deriving (Show)
 
 instance IsString Plain where
   fromString = Plain
@@ -423,7 +423,7 @@ instance CommandArg Plain where
 plainP :: String -> Either String Plain
 plainP = Right . Plain
 
-newtype Path = Path String deriving (Show)
+newtype Path = Path { unPath :: String } deriving (Show)
 
 instance IsString Path where
   fromString = Path
