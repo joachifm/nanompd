@@ -292,6 +292,7 @@ fieldK k v = P $ do
 
 field :: String -> (String -> Either String a) -> Parser a
 field k v = fmap snd (fieldK k v)
+{-# INLINE field #-}
 
 ------------------------------------------------------------------------
 -- Connection primitives.
