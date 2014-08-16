@@ -158,7 +158,8 @@ currently playing song and the daemon's status information
 @
 import qualified MPD
 
-MPD.run ((,) \<$\> MPD.currentSong \<*\> MPD.status)
+foo = do
+  MPD.run ((,) \<$\> MPD.currentSong \<*\> MPD.status)
 @
 -}
 
@@ -188,6 +189,9 @@ where @arg1 .. argN@ are members of @CommandArg@.
 ------------------------------------------------------------------------
 -- A basic client environment.
 
+{-|
+MPD client errors.
+-}
 data ClientError
   = ParseError String
   | ProtocolError String
@@ -197,11 +201,13 @@ data ClientError
     deriving (Show)
 
 {-|
-A basic environment for MPD clients, parameterised over
-some base monad.
+A basic environment for MPD clients, parameterised over some base monad.
 -}
 type ClientT m a = EitherT ClientError m a
 
+{-|
+Run a 'ClientT' action in the base monad.
+-}
 runClientT :: ClientT m a -> m (Either ClientError a)
 runClientT = runEitherT
 
@@ -235,6 +241,9 @@ instance Alternative Parser where
   empty = mzero
   (<|>) = mplus
 
+{-|
+Apply 'Parser' to the given input.
+-}
 parse :: Parser a -> [String] -> Either String a
 parse p = evalState (runP p)
 
