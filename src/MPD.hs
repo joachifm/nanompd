@@ -254,10 +254,10 @@ readP n i = case reads i of
   _         -> Left ("expected " ++ n ++ "; got " ++ i)
 
 intP :: String -> Either String Int
-intP i = readP "[0-9]" i
+intP = readP "[0-9]"
 
 doubleP :: String -> Either String Double
-doubleP i = readP "double" i
+doubleP = readP "double"
 
 -- Convert value parser into a line parser (i.e., consumes an entire line)
 liftP :: (String -> Either String a) -> Parser a
@@ -265,7 +265,7 @@ liftP p = P $ do
   st <- get
   case st of
     [x] -> return $ p x
-    _   -> return (Left $ "liftP: empty input")
+    _   -> return (Left "liftP: empty input")
 
 fieldK :: String -> (String -> Either String a) -> Parser (String, a)
 fieldK k v = P $ do
@@ -352,19 +352,19 @@ class CommandArg a where
   fromArg :: a -> String
 
 instance (CommandArg a) => CommandArg (Maybe a) where
-  fromArg m = maybe mempty fromArg m
+  fromArg = maybe mempty fromArg
 
 instance (CommandArg a) => CommandArg [a] where
   fromArg m = unwords (map fromArg m)
 
 instance CommandArg Int where
-  fromArg x = show x
+  fromArg = show
 
 instance CommandArg Integer where
-  fromArg x = show x
+  fromArg = show
 
 instance CommandArg Double where
-  fromArg x = show x
+  fromArg = show
 
 instance CommandArg Bool where
   fromArg x = if x then "1" else "0"
@@ -388,7 +388,7 @@ instance Applicative Command where
 command :: CommandStr -> Parser a -> Command a
 command q p = Command [q] $ P $ do
   (hd, tl) <- second (List.drop 1) . List.break (== "list_OK") <$> get
-  rv <- (put hd >> runP p)
+  rv <- put hd >> runP p
   put tl
   return rv
 
@@ -526,7 +526,7 @@ songInfo = SongInfo <$>
   optional (field "Id" intP)
 
 songTag :: Parser (Label, Plain)
-songTag = foldr1 (<|>) $ map (\k -> fieldK k plainP) tagTypes
+songTag = foldr1 (<|>) $ map (`fieldK` plainP) tagTypes
 
 tagTypes :: [Label]
 tagTypes = [ "Artist", "Title", "Album" ]
@@ -541,6 +541,7 @@ tagTypes = [ "Artist", "Title", "Album" ]
 
 -- Connection
 
+-- | Ping daemon.
 ping :: Command ()
 ping = command "ping" (return ())
 
