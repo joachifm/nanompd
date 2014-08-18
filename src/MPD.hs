@@ -13,9 +13,8 @@ Maintainer  : joachifm@fastmail.fm
 Stability   : unstable
 Portability : unportable
 
-This module exports types and functions for scripting
-client interactions with a running instance of MPD, the
-music player daemon.
+Types and functions for scripting client interactions with a running instance
+of MPD, the music player daemon.
 -}
 
 module MPD
@@ -27,36 +26,52 @@ module MPD
     -- $extending
 
     -- * Client environment
+    -- $env
     ClientError(..)
 
     -- * Command interface
+    -- $command
   , Command
   , command
   , run
   , runWith
 
     -- * Connection primitives
+    -- $connection
   , withConn
   , getResponse
+
+    -- ** Internals
   , send
   , recv
 
     -- * Convenient syntax for protocol command strings
+    -- $commandStr
   , CommandStr
   , CommandArg(..)
   , (.+)
+
+    -- ** Internals
   , render
 
-    -- * Line-oriented response parser
+    -- * Command response parser
+    -- $parser
   , Parser
   , parse
+
+    -- ** Protocol object parser
   , field
+
+    -- ** Protocol value parsers
   , boolP
   , textP
   , intP
   , doubleP
 
     -- * Protocol objects
+    -- $objects
+
+    -- ** Scalars
   , Date
   , Label
   , Path(..)
@@ -68,19 +83,21 @@ module MPD
   , Range(..)
   , PlaybackState
   , SubsystemName
+
+    -- ** Compound objects
   , LsEntry(..)
   , LsEntryInfo(..)
   , SongInfo(..)
   , viewTag
   , StatusInfo(..)
 
-    -- ** Internal parsers
+    -- ** Object parsers
   , lsEntry
   , lsEntryInfo
   , songInfo
   , statusInfo
 
-    -- * Canned MPD protocol command wrappers
+    -- * MPD protocol command wrappers
     -- $wrappers
 
     -- ** Connection
@@ -131,12 +148,19 @@ module MPD
   , status
 
     -- * Re-exports
+
+    -- ** From "Network"
   , HostName
   , PortID(..)
 
+    -- ** From "Control.Applicative"
+  , Applicative(..)
+
+    -- ** From "Control.Error"
+  , EitherT(runEitherT)
+
+    -- ** From "Control.Monad.Trans"
   , MonadIO(..)
-  , EitherT
-  , runEitherT
   ) where
 
 import Control.Applicative
@@ -156,20 +180,34 @@ import System.IO.Error (tryIOError)
 import qualified Data.List as List
 
 {-$usage
+The client API is structured around the 'Command' type, which
+represents an MPD protocol command wrapper.
+Values of type 'Command' support arbitrary composition into compound
+commands, to be executed in batch.
+This module provides ready-made wrappers that cover most of the MPD
+protocol.
+A regular user should not have to define their own wrappers, other
+than by combining those already provided.
 
-MPD protocol command wrappers have the type 'Command' and may
-be composed into compound commands with 'Applicative'.
-Command wrappers are executed with 'run'.
+Command wrappers are turned into client actions (computations
+against a running server) with 'run'.
+All MPD client actions are executed within a @EitherT ClientError@ monad;
+to unwrap the result, use 'runEitherT'.
+Currently, all 'Command's executed by 'run' acquire a separate connection
+to the MPD server.
 
-The following snippet produces a crude report of the
-currently playing song and the daemon's status information
+The following snippet produces a crude report of the currently playing song
+and the daemon's status information.
 
 @
-import qualified MPD
+import MPD
 
-foo = do
-  MPD.run ((,) \<$\> MPD.currentSong \<*\> MPD.status)
+main = either (userError . show) print . runEitherT $
+  run ((,) \<$\> currentSong \<*\> status)
 @
+
+Note that "MPD" re-exports most of what you'll need to be
+productive.
 -}
 
 {-$extending
@@ -177,13 +215,35 @@ Define new commands with 'command', a smart constructor which
 takes a protocol command string and a parser for the response.
 Consult the MPD specification for the syntax used by a particular
 command.
+Name new wrappers by taking the camelCase of the protocol command
+name.
+Command wrappers defined with 'command' are \"primitive\" and should
+do the least amount of work to provide a useful interface to a single
+protocol command.
 
-Command parsers operate only on the response pertaining to a
-particular command (modulo the command list delimiter).
+A compound command may be conceived of as a linked list of protocol command
+strings and an associated parser for the response pertaining to that command.
+The commands are sent to the server in batch, and the response is
+consumed by applying each parser to the part of the response pertaining
+to the corresponding command.
 
-Protocol objects are @key\/value@ pairs and are parsed into a
-corresponding record structure by composing 'field' parsers.
-See e.g., 'songInfo' and 'statusInfo'.
+Command parsers are limited to the part of the overall response
+which pertains to their associated protocol command string and so
+should be implemented without regard for preceding or following commands.
+The implementation ensures that command responses and parsers are paired up.
+Currently, left-overs are silently discarded, though you could define a
+parser whose only job is to fail if there is any input left to consume.
+
+Protocol objects are @key\/value@ pairs and are parsed into a corresponding
+record structure using 'field', as in
+
+@
+fooParser = (,) <\$\> field "key" valueParser <\*\> field "key" valueParser
+@
+
+Typically, each protocol object will have a corresponding record structure
+and parser, both doing the least amount of work necessary to be useful.
+Examples of object parsers are 'songInfo' and 'statusInfo'.
 
 With @-XOverloadedStrings@, there is a convenient syntax for building
 command strings:
@@ -192,15 +252,15 @@ command strings:
 foo = "command_name" .+ arg1 .+ arg2
 @
 
-where @arg1 .. argN@ are members of @CommandArg@.
+where @arg1 .. argN@ are instances of 'CommandArg'.
+The library provides 'CommandArg' instances for several standard types,
+as well as instances for '[]', 'Maybe' (optional parameters),
+and 'Either' (choice).
 -}
 
 ------------------------------------------------------------------------
--- A basic client environment.
+-- $env
 
-{-|
-MPD client errors.
--}
 data ClientError
   = ParseError String
   | ProtocolError String
@@ -210,7 +270,7 @@ data ClientError
     deriving (Show)
 
 ------------------------------------------------------------------------
--- Line-oriented response parser.
+-- $parser
 
 newtype Parser a = P { runP :: State [String] (Either String a) }
 
@@ -234,9 +294,6 @@ instance Alternative Parser where
   empty = mzero
   (<|>) = mplus
 
-{-|
-Apply 'Parser' to the given input.
--}
 parse :: Parser a -> [String] -> Either String a
 parse = evalState . runP
 
@@ -290,12 +347,10 @@ field k v = fmap snd (fieldK k v)
 {-# INLINE field #-}
 
 ------------------------------------------------------------------------
--- Connection primitives.
+-- $connection
 
 connIO :: (MonadIO m) => IO a -> EitherT ClientError m a
 connIO m = either (left . ConnError) return =<< liftIO (tryIOError m)
-
--- Executing a single response
 
 getResponse
   :: (MonadIO m)
@@ -322,8 +377,6 @@ recv hdl = go
       else if "ACK" `List.isPrefixOf` ln
         then left $ ProtocolError (List.drop 4 ln)
       else fmap (ln :) go
-
--- Connection
 
 withConn
   :: (C.MonadMask m, MonadIO m)
@@ -356,7 +409,7 @@ close hdl = void . liftIO $
   tryIOError (hPutStr hdl "close\n" >> hClose hdl)
 
 ------------------------------------------------------------------------
--- Convenient syntax for protocol command strings.
+-- $commandStr
 
 data CommandStr = CommandStr [String]
   deriving (Show)
@@ -399,7 +452,7 @@ render :: CommandStr -> String
 render (CommandStr as) = unwords (filter (not . null) as)
 
 ------------------------------------------------------------------------
--- Applicative command interface.
+-- $command
 
 data Command a = Command [CommandStr] (Parser a)
   deriving (Functor)
@@ -431,7 +484,7 @@ run
 run = runWith "localhost" (PortNumber 6600)
 
 ------------------------------------------------------------------------
--- Protocol objects.
+-- $objects
 
 type Date = String
 type Label = String
@@ -563,11 +616,6 @@ tagTypes = [ "Artist", "Title", "Album" ]
 
 ------------------------------------------------------------------------
 -- $wrappers
---
--- Each command corresponds to an MPD protocol command.
---
--- Please refer to the MPD protocol specification for details on each
--- command.
 
 -- Connection
 
@@ -613,7 +661,7 @@ shuffle mbRange = command ("shuffle" .+ mbRange) (return ())
 find :: Plain -> Plain -> Command [SongInfo]
 find meta value = command ("find" .+ meta .+ value) (many songInfo)
 
--- | Recurisvely list information for items under path (or root).
+-- | A recursive 'lsInfo'.
 listAllInfo :: Maybe Path -> Command [LsEntryInfo]
 listAllInfo mbPath = command ("listallinfo" .+ mbPath) (many lsEntryInfo)
 
