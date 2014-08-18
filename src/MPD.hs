@@ -374,6 +374,9 @@ class CommandArg a where
 instance (CommandArg a) => CommandArg (Maybe a) where
   fromArg = maybe mempty fromArg
 
+instance (CommandArg a, CommandArg b) => CommandArg (Either a b) where
+  fromArg = either fromArg fromArg
+
 instance (CommandArg a) => CommandArg [a] where
   fromArg m = unwords (map fromArg m)
 
