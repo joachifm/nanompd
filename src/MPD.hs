@@ -242,7 +242,7 @@ Apply 'Parser' to the given input.
 parse :: Parser a -> [String] -> Either String a
 parse p = evalState (runP p)
 
-------------------------------------------------------------------------
+-- Value parsers
 
 textP :: String -> Either String String
 textP = Right
@@ -270,6 +270,8 @@ liftP p = P $ do
   case st of
     [x] -> return $ p x
     _   -> return (Left "liftP: empty input")
+
+-- Object parser
 
 fieldK :: String -> (String -> Either String a) -> Parser (String, a)
 fieldK k v = P $ do
