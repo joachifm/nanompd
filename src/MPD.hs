@@ -215,7 +215,9 @@ runClientT = runEitherT
 -- Line-oriented response parser.
 
 newtype Parser a = P { runP :: State [String] (Either String a) }
-  deriving (Functor)
+
+instance Functor Parser where
+  fmap f (P g) = P (fmap (fmap f) g)
 
 instance Monad Parser where
   return x = P $ return (Right x)
