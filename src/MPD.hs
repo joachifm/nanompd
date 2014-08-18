@@ -224,6 +224,7 @@ instance Monad Parser where
     case r of
       Left e  -> return (Left e)
       Right x -> runP (k x)
+  fail x = P $ return (Left x)
 
 instance MonadPlus Parser where
   mzero = P $ return (Left "")
