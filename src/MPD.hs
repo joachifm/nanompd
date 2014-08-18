@@ -26,16 +26,20 @@ module MPD
     -- * Extending
     -- $extending
 
-    -- * Basic client environment
-    ClientT
-  , ClientError
-  , runClientT
+    -- * Client environment
+    ClientError(..)
 
     -- * Command interface
   , Command
   , command
   , run
   , runWith
+
+    -- * Connection primitives
+  , withConn
+  , getResponse
+  , send
+  , recv
 
     -- * Convenient syntax for protocol command strings
   , CommandStr
@@ -129,11 +133,16 @@ module MPD
     -- * Re-exports
   , HostName
   , PortID(..)
+
+  , MonadIO(..)
+  , EitherT
+  , runEitherT
   ) where
 
 import Control.Applicative
 import Control.Arrow (second)
-import Control.Error (EitherT, runEitherT, left, right)
+import Control.Error (EitherT(..), left, right)
+import qualified Control.Monad.Catch as C
 import Control.Monad (MonadPlus(..), ap, unless)
 import Control.Monad.State (State, evalState, get, put)
 import Control.Monad.Trans (MonadIO(..))
@@ -142,7 +151,7 @@ import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import Network (HostName, PortID(..), connectTo)
 import Prelude hiding (repeat)
-import System.IO (Handle, hGetLine, hPutStr, hPutStrLn, hClose)
+import System.IO (Handle, hGetLine, hPutStr, hClose)
 import System.IO.Error (tryIOError)
 import qualified Data.List as List
 
@@ -200,17 +209,6 @@ data ClientError
   | Custom String
     deriving (Show)
 
-{-|
-A basic environment for MPD clients, parameterised over some base monad.
--}
-type ClientT m a = EitherT ClientError m a
-
-{-|
-Run a 'ClientT' action in the base monad.
--}
-runClientT :: ClientT m a -> m (Either ClientError a)
-runClientT = runEitherT
-
 ------------------------------------------------------------------------
 -- Line-oriented response parser.
 
@@ -240,7 +238,7 @@ instance Alternative Parser where
 Apply 'Parser' to the given input.
 -}
 parse :: Parser a -> [String] -> Either String a
-parse p = evalState (runP p)
+parse = evalState . runP
 
 -- Value parsers
 
@@ -294,10 +292,27 @@ field k v = fmap snd (fieldK k v)
 ------------------------------------------------------------------------
 -- Connection primitives.
 
-connIO :: (MonadIO m) => IO a -> ClientT m a
+connIO :: (MonadIO m) => IO a -> EitherT ClientError m a
 connIO m = either (left . ConnError) return =<< liftIO (tryIOError m)
 
-recv :: (MonadIO m) => Handle -> ClientT m [String]
+-- Executing a single response
+
+getResponse
+  :: (MonadIO m)
+  => Handle
+  -> [String]
+  -> Parser a
+  -> EitherT ClientError m a
+getResponse hdl q p = do
+  send hdl q
+  either (left . ParseError) right =<< (parse p `fmap` recv hdl)
+
+send :: (MonadIO m) => Handle -> [String] -> EitherT ClientError m ()
+send hdl = connIO . hPutStr hdl . (\xs -> unlines $ case xs of
+  [x] -> [x]
+  _   -> ("command_list_ok_begin" : xs) ++ ["command_list_end"])
+
+recv :: (MonadIO m) => Handle -> EitherT ClientError m [String]
 recv hdl = go
   where
     go = do
@@ -308,17 +323,26 @@ recv hdl = go
         then left $ ProtocolError (List.drop 4 ln)
       else fmap (ln :) go
 
-send :: (MonadIO m) => Handle -> [String] -> ClientT m ()
-send hdl q = connIO (hPutStr hdl q')
-  where
-    q' = unlines $ "command_list_ok_begin" : q ++ ["command_list_end"]
+-- Connection
 
-getResponse :: (MonadIO m) => Handle -> [String] -> Parser a -> ClientT m a
-getResponse hdl q p = do
-  send hdl q
-  either (left . ParseError) right =<< (parse p `fmap` recv hdl)
+withConn
+  :: (C.MonadMask m, MonadIO m)
+  => HostName
+  -> PortID
+  -> (Handle -> EitherT ClientError m a)
+  -> EitherT ClientError m a
+withConn host port m = EitherT $ C.bracket
+  (runEitherT $ open host port)
+  (\eh -> case eh of Left e         -> return (Left e)
+                     Right (hdl, _) -> runEitherT (close hdl))
+  (\eh -> case eh of Left e         -> return (Left e)
+                     Right (hdl, _) -> runEitherT (m hdl))
 
-open :: (MonadIO m) => HostName -> PortID -> ClientT m (Handle, String)
+open
+  :: (MonadIO m)
+  => HostName
+  -> PortID
+  -> EitherT ClientError m (Handle, String)
 open host port = do
   hdl <- connIO (connectTo host port)
   ver <- connIO (hGetLine hdl)
@@ -327,20 +351,9 @@ open host port = do
     left InvalidHost
   return (hdl, ver)
 
-close :: (MonadIO m) => Handle -> ClientT m ()
-close hdl = void . liftIO $ tryIOError (hPutStr hdl "close\n" >> hClose hdl)
-
-withConn
-  :: (MonadIO m)
-  => HostName
-  -> PortID
-  -> (Handle -> ClientT m a)
-  -> ClientT m a
-withConn host port f = do
-  (hdl, _) <- open host port
-  res <- f hdl
-  close hdl
-  return $! res
+close :: (MonadIO m) => Handle -> EitherT ClientError m ()
+close hdl = void . liftIO $
+  tryIOError (hPutStr hdl "close\n" >> hClose hdl)
 
 ------------------------------------------------------------------------
 -- Convenient syntax for protocol command strings.
@@ -399,13 +412,20 @@ command q p = Command [q] $ P $ do
   put tl
   return rv
 
-runWith :: HostName -> PortID -> Command a -> ClientT IO a
+runWith
+  :: (C.MonadMask m, MonadIO m)
+  => HostName
+  -> PortID
+  -> Command a
+  -> EitherT ClientError m a
 runWith host port (Command q p) = withConn host port $ \hdl ->
   getResponse hdl (map render q) p
 
-run :: Command a -> ClientT IO a
+run
+  :: (C.MonadMask m, MonadIO m)
+  => Command a
+  -> EitherT ClientError m a
 run = runWith "localhost" (PortNumber 6600)
-{-# INLINE run #-}
 
 ------------------------------------------------------------------------
 -- Protocol objects.

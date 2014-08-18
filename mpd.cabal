@@ -14,6 +14,7 @@ library
   build-depends:
       base
     , errors
+    , exceptions
     , mtl
     , network
 
@@ -38,6 +39,7 @@ test-suite specs
   build-depends:
       base
     , errors
+    , exceptions
     , mtl
     , network
 
