@@ -219,20 +219,12 @@ newtype Parser a = P { runP :: State [String] (Either String a) }
 
 instance Monad Parser where
   return x = P $ return (Right x)
-  f >>= k  = P $ do
-    r <- runP f
-    case r of
-      Left e  -> return (Left e)
-      Right x -> runP (k x)
-  fail x = P $ return (Left x)
+  f >>= k  = P $ either (return . Left) (runP . k) =<< runP f
+  fail     = P . return . Left
 
 instance MonadPlus Parser where
   mzero = P $ return (Left "")
-  f `mplus` k = P $ do
-    r <- runP f
-    case r of
-      Left _ -> runP k
-      _      -> return r
+  f `mplus` k = P $ either (\_ -> runP k) (return . Right) =<< runP f
 
 instance Applicative Parser where
   pure  = return
