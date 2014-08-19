@@ -68,6 +68,7 @@ test-suite specs
     , network
 
     , hspec
+    , hspec-expectations
 
   ghc-options:
     -Wall

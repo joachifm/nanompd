@@ -22,6 +22,6 @@ with haskellPackages; cabal.mkDerivation (self: rec {
   buildDepends = [
     cabalInstall either exceptions mtl network
   ];
-  testDepends = buildDepends;
-  doCheck = false;
+  testDepends = buildDepends ++ [ hspec hspecExpectations ];
+  doCheck = true;
 })
