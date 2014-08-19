@@ -14,6 +14,14 @@ import Test.Hspec.Expectations.Contrib
 
 spec :: Spec
 spec = describe "Protocol object parsers" $ do
+
+  it "field/single" $ do
+    field "foo" intP `shouldAccept` [ "foo: 1337" ]
+
+  it "field/compound" $ do
+    ((,) <$> field "foo" intP <*> field "bar" boolP)
+    `shouldAccept` [ "foo: 1337", "bar: 0" ]
+
   it "songInfo 1" $
     songInfo `shouldAccept` songInfo1
 
