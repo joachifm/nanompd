@@ -4,6 +4,9 @@ synopsis:
   A library for scripting client interactions with MPD,
   the Music Player Daemon.
 
+license: MIT
+license-file: COPYING
+
 build-type: Simple
 cabal-version: >= 1.10
 
