@@ -12,4 +12,4 @@ import Control.Monad (replicateM_, void)
 
 main :: IO ()
 main = void $ replicateM_ 100 $ do
-  (runClientT . run) (listAllInfo Nothing) >>= print
+  (runEitherT . run) (listAllInfo Nothing) >>= print

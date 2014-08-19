@@ -12,7 +12,7 @@ import Criterion.Main (defaultMain, bench, whnfIO)
 
 main = defaultMain
   [
-    bench "ping"           $ whnfIO (runClientT . run $ ping)
-  , bench "currentsong"    $ whnfIO (runClientT . run $ currentSong)
-  , bench "listallinfo"    $ whnfIO (runClientT . run $ listAllInfo Nothing)
+    bench "ping"           $ whnfIO (runEitherT . run $ ping)
+  , bench "currentsong"    $ whnfIO (runEitherT . run $ currentSong)
+  , bench "listallinfo"    $ whnfIO (runEitherT . run $ listAllInfo Nothing)
   ]
