@@ -24,14 +24,12 @@ module MPD
     -- * Extending
     -- $extending
 
-    -- * Client environment
-    -- $env
-    ClientError(..)
-
     -- * Command interface
     -- $command
-  , Command
+    Command
   , command
+
+  , ClientError(..)
   , run
   , runWith
 
@@ -39,10 +37,6 @@ module MPD
     -- $connection
   , withConn
   , getResponse
-
-    -- ** Internals
-  , send
-  , recv
 
     -- * Convenient syntax for protocol command strings
     -- $commandStr
@@ -62,41 +56,41 @@ module MPD
   , field
 
     -- ** Protocol value parsers
-  , boolP
-  , textP
+  , Label
   , labelP
+  , Text(..)
+  , textP
+  , readP
+  , boolP
   , intP
   , doubleP
-  , dateP
-  , pathP
+  , liftP
 
     -- * Protocol objects
     -- $objects
 
     -- ** Scalars
   , Date
-  , Label
+  , dateP
   , Path(..)
-  , Text(..)
+  , pathP
+  , PlaybackState
+  , Range(..)
   , Seconds
   , SongId
   , SongPos
-  , Volume
-  , Range(..)
-  , PlaybackState
   , SubsystemName
+  , Volume
 
-    -- ** Compound objects
+    -- ** Objects
   , LsEntry(..)
+  , lsEntry
   , LsEntryInfo(..)
+  , lsEntryInfo
   , SongInfo(..)
+  , songInfo
   , viewTag
   , StatusInfo(..)
-
-    -- ** Object parsers
-  , lsEntry
-  , lsEntryInfo
-  , songInfo
   , statusInfo
 
     -- * MPD protocol command wrappers
@@ -262,17 +256,6 @@ and 'Either' (choice).
 -}
 
 ------------------------------------------------------------------------
--- $env
-
-data ClientError
-  = ParseError String
-  | ProtocolError String
-  | InvalidHost
-  | ConnError IOError
-  | Custom String
-    deriving (Show)
-
-------------------------------------------------------------------------
 -- $parser
 
 newtype Parser a = P { runP :: State [String] (Either String a) }
@@ -302,15 +285,15 @@ parse = evalState . runP
 
 -- Value parsers
 
-boolP :: String -> Either String Bool
-boolP "0" = Right False
-boolP "1" = Right True
-boolP i   = Left ("expected 0 or 1; got " ++ i)
-
 readP :: (Read a) => String -> String -> Either String a
 readP n i = case reads i of
   [(r, "")] -> Right r
   _         -> Left ("expected " ++ n ++ "; got " ++ i)
+
+boolP :: String -> Either String Bool
+boolP "0" = Right False
+boolP "1" = Right True
+boolP i   = Left ("expected 0 or 1; got " ++ i)
 
 intP :: String -> Either String Int
 intP = readP "[0-9]"
@@ -469,6 +452,14 @@ command q p = Command [q] $ P $ do
   rv <- put hd >> runP p
   put tl
   return rv
+
+data ClientError
+  = ParseError String
+  | ProtocolError String
+  | InvalidHost
+  | ConnError IOError
+  | Custom String
+    deriving (Show)
 
 runWith
   :: (C.MonadMask m, MonadIO m)
