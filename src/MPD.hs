@@ -205,8 +205,8 @@ and the daemon's status information.
 @
 import MPD
 
-main = either (userError . show) print . runEitherT $
-  run ((,) \<$\> currentSong \<*\> status)
+main = either (fail . show) print =<< (runEitherT . run)
+  ((,) \<$\> currentSong \<*\> status)
 @
 
 Note that "MPD" re-exports most of what you'll need to be
