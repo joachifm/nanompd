@@ -38,7 +38,6 @@ p `shouldAccept` i = parse p i `shouldSatisfy` isRight
 ------------------------------------------------------------------------
 -- Example data
 
-songInfo1, songInfo2, songInfo3, songInfo4 :: [String]
 songInfo1 = [
     "file: foo.mp3"
   , "Last-Modified: 2014-05-16T17:33:26Z"
