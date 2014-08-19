@@ -68,6 +68,7 @@ module MPD
   , labelP
   , intP
   , doubleP
+  , dateP
 
     -- * Protocol objects
     -- $objects
@@ -523,6 +524,9 @@ newtype Range = Range (Int, Int)
 instance CommandArg Range where
   fromArg (Range (a, b)) = fromArg a ++ ":" ++ fromArg b
 
+dateP :: String -> Either String Date
+dateP = textP
+
 data LsEntry
   = LsFile Path
   | LsDir Path
@@ -544,9 +548,9 @@ data LsEntryInfo
 lsEntryInfo :: Parser LsEntryInfo
 lsEntryInfo =
   LsSongInfo <$> songInfo <|>
-  (LsDirInfo <$> field "directory" pathP <*> field "Last-Modified" textP) <|>
+  (LsDirInfo <$> field "directory" pathP <*> field "Last-Modified" dateP) <|>
   (LsPlaylistInfo <$> field "playlist" pathP
-                  <*> field "Last-Modified" textP)
+                  <*> field "Last-Modified" dateP)
 
 data StatusInfo = StatusInfo
   { statusVolume :: Volume
@@ -603,7 +607,7 @@ viewTag si l = lookup l (songTags si)
 songInfo :: Parser SongInfo
 songInfo = SongInfo <$>
   field "file" pathP <*>
-  field "Last-Modified" textP <*>
+  field "Last-Modified" dateP <*>
   field "Time" intP <*>
   many songTag <*>
   optional (field "Pos" intP) <*>
