@@ -69,6 +69,7 @@ module MPD
   , intP
   , doubleP
   , dateP
+  , pathP
 
     -- * Protocol objects
     -- $objects
