@@ -158,6 +158,7 @@ module MPD
 
     -- ** From "Control.Applicative"
   , Applicative(..)
+  , (<$>)
 
     -- ** From "Control.Error"
   , EitherT(runEitherT)
