@@ -65,6 +65,7 @@ module MPD
     -- ** Protocol value parsers
   , boolP
   , textP
+  , labelP
   , intP
   , doubleP
 
@@ -75,7 +76,7 @@ module MPD
   , Date
   , Label
   , Path(..)
-  , Plain(..)
+  , Text(..)
   , Seconds
   , SongId
   , SongPos
@@ -299,9 +300,6 @@ parse = evalState . runP
 
 -- Value parsers
 
-textP :: String -> Either String String
-textP = Right
-
 boolP :: String -> Either String Bool
 boolP "0" = Right False
 boolP "1" = Right True
@@ -486,25 +484,28 @@ run = runWith "localhost" (PortNumber 6600)
 ------------------------------------------------------------------------
 -- $objects
 
-type Date = String
+type Date = Text
 type Label = String
 type Seconds = Int
 type SongId = Int
 type SongPos = Int
 type Volume = Int
-type SubsystemName = Plain
-type PlaybackState = String
+type SubsystemName = Text
+type PlaybackState = Text
 
-newtype Plain = Plain { unPlain :: String } deriving (Show)
+newtype Text = Text { unText :: String } deriving (Show)
 
-instance IsString Plain where
-  fromString = Plain
+instance IsString Text where
+  fromString = Text
 
-instance CommandArg Plain where
-  fromArg (Plain x) = x
+instance CommandArg Text where
+  fromArg (Text x) = x
 
-plainP :: String -> Either String Plain
-plainP = Right . Plain
+textP :: String -> Either String Text
+textP = Right . Text
+
+labelP :: String -> Either String String
+labelP = Right
 
 newtype Path = Path { unPath :: String } deriving (Show)
 
@@ -559,10 +560,10 @@ data StatusInfo = StatusInfo
   , statusPlaybackState :: PlaybackState
   , statusSongPos :: Maybe SongPos
   , statusSongId :: Maybe SongId
-  , statusTime :: Maybe Plain -- XXX: current:total
+  , statusTime :: Maybe Text -- XXX: current:total
   , statusElapsedTime :: Maybe Double
   , statusBitrate :: Maybe Int
-  , statusAudio :: Maybe Plain -- XXX: a:b:c
+  , statusAudio :: Maybe Text -- XXX: a:b:c
   , statusNextSongPos :: Maybe SongPos
   , statusNextSongId :: Maybe SongId
   } deriving (Show)
@@ -580,10 +581,10 @@ statusInfo = StatusInfo <$>
   field "state" textP <*>
   optional (field "song" intP) <*>
   optional (field "songid" intP) <*>
-  optional (field "time" plainP) <*>
+  optional (field "time" textP) <*>
   optional (field "elapsed" doubleP) <*>
   optional (field "bitrate" intP) <*>
-  optional (field "audio" plainP) <*>
+  optional (field "audio" textP) <*>
   optional (field "nextsong" intP) <*>
   optional (field "nextsongid" intP)
 
@@ -591,7 +592,7 @@ data SongInfo = SongInfo
   { songFile :: Path
   , songLastModified :: Date
   , songTime :: Seconds
-  , songTags :: [(Label, Plain)]
+  , songTags :: [(Label, Text)]
   , songPos :: Maybe SongPos
   , songId :: Maybe SongId
   } deriving (Show)
@@ -608,8 +609,8 @@ songInfo = SongInfo <$>
   optional (field "Pos" intP) <*>
   optional (field "Id" intP)
 
-songTag :: Parser (Label, Plain)
-songTag = foldr1 (<|>) $ map (`fieldK` plainP) tagTypes
+songTag :: Parser (Label, Text)
+songTag = foldr1 (<|>) $ map (`fieldK` textP) tagTypes
 
 tagTypes :: [Label]
 tagTypes = [ "Artist", "Title", "Album" ]
@@ -646,10 +647,10 @@ playlistInfo :: Command [SongInfo]
 playlistInfo = command "playlistinfo" (many songInfo)
 
 -- | List changes to the playlist since a given version.
-plChangesPosId :: Int -> Command [(Label, Plain)]
+plChangesPosId :: Int -> Command [(Label, Text)]
 plChangesPosId v = command ("plchangesposid" .+ v) (many p)
   where
-    p = (,) <$> field "cpos" textP <*> field "id" plainP
+    p = (,) <$> field "cpos" labelP <*> field "id" textP
 
 -- | Shuffle current playlist.
 shuffle :: Maybe Range -> Command ()
@@ -658,7 +659,7 @@ shuffle mbRange = command ("shuffle" .+ mbRange) (return ())
 -- Database
 
 -- | Find items where @meta = value@ exactly.
-find :: Plain -> Plain -> Command [SongInfo]
+find :: Text -> Text -> Command [SongInfo]
 find meta value = command ("find" .+ meta .+ value) (many songInfo)
 
 -- | A recursive 'lsInfo'.
@@ -743,7 +744,7 @@ currentSong = command "currentsong" (optional songInfo)
 idle :: [SubsystemName] -> Command [SubsystemName]
 idle ss = command ("idle" .+ ss) (many p)
   where
-    p = field "changed" plainP
+    p = field "changed" textP
 
 -- | Cancel 'idle'.
 noidle :: Command ()
