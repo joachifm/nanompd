@@ -548,23 +548,23 @@ lsEntryInfo =
                   <*> field "Last-Modified" textP)
 
 data StatusInfo = StatusInfo
-  { _statusVolume :: Volume
-  , _statusRepeatEnabled :: Bool
-  , _statusRandomEnabled :: Bool
-  , _statusSingleEnabled :: Bool
-  , _statusConsumeEnabled :: Bool
-  , _statusPlaylistVersion :: Int
-  , _statusPlaylistLength :: Int
-  , _statusMixrampDb :: Double
-  , _statusPlaybackState :: PlaybackState
-  , _statusSongPos :: Maybe SongPos
-  , _statusSongId :: Maybe SongId
-  , _statusTime :: Maybe Plain -- XXX: current:total
-  , _statusElapsedTime :: Maybe Double
-  , _statusBitrate :: Maybe Int
-  , _statusAudio :: Maybe Plain -- XXX: a:b:c
-  , _statusNextSongPos :: Maybe SongPos
-  , _statusNextSongId :: Maybe SongId
+  { statusVolume :: Volume
+  , statusRepeatEnabled :: Bool
+  , statusRandomEnabled :: Bool
+  , statusSingleEnabled :: Bool
+  , statusConsumeEnabled :: Bool
+  , statusPlaylistVersion :: Int
+  , statusPlaylistLength :: Int
+  , statusMixrampDb :: Double
+  , statusPlaybackState :: PlaybackState
+  , statusSongPos :: Maybe SongPos
+  , statusSongId :: Maybe SongId
+  , statusTime :: Maybe Plain -- XXX: current:total
+  , statusElapsedTime :: Maybe Double
+  , statusBitrate :: Maybe Int
+  , statusAudio :: Maybe Plain -- XXX: a:b:c
+  , statusNextSongPos :: Maybe SongPos
+  , statusNextSongId :: Maybe SongId
   } deriving (Show)
 
 statusInfo :: Parser StatusInfo
@@ -588,12 +588,12 @@ statusInfo = StatusInfo <$>
   optional (field "nextsongid" intP)
 
 data SongInfo = SongInfo
-  { _songFile :: Path
-  , _songLastModified :: Date
-  , _songTime :: Seconds
-  , _songTags :: [(Label, Plain)]
-  , _songPos :: Maybe SongPos
-  , _songId :: Maybe SongId
+  { songFile :: Path
+  , songLastModified :: Date
+  , songTime :: Seconds
+  , songTags :: [(Label, Plain)]
+  , songPos :: Maybe SongPos
+  , songId :: Maybe SongId
   } deriving (Show)
 
 viewTag :: SongInfo -> Label -> Maybe Plain
