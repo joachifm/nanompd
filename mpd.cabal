@@ -40,6 +40,10 @@ library
 
   exposed-modules:
       MPD
+    , MPD.Core
+    , MPD.Commands
+    , MPD.Commands.Parser
+    , MPD.Commands.Types
 
   other-modules:
 
@@ -57,8 +61,9 @@ test-suite specs
   main-is: Spec.hs
 
   other-modules:
-      MPD.CommandStrSpec
-    , MPD.ParserSpec
+      MPD.Core.CommandStrSpec
+    , MPD.Core.ParserSpec
+    , MPD.Commands.ParserSpec
 
   build-depends:
       base

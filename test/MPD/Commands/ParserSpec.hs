@@ -1,9 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module MPD.ParserSpec (spec) where
+module MPD.Commands.ParserSpec (spec) where
 
-import MPD
+import MPD.Core
+import MPD.Commands.Parser
 
 import Control.Applicative
 import Data.Monoid (mconcat, (<>))
@@ -14,14 +15,7 @@ import Test.Hspec.Expectations.Contrib
 -- Main specification.
 
 spec :: Spec
-spec = describe "Protocol object parsers" $ do
-
-  it "field/single" $ do
-    field "foo" intP `shouldAccept` [ "foo: 1337" ]
-
-  it "field/compound" $ do
-    ((,) <$> field "foo" intP <*> field "bar" boolP)
-    `shouldAccept` [ "foo: 1337", "bar: 0" ]
+spec = do
 
   it "songInfo 1" $
     songInfo `shouldAccept` songInfo1

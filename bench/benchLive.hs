@@ -8,6 +8,7 @@ Warning: make sure to compare runs between identical environments
 module Main (main) where
 
 import MPD
+import MPD.Core
 import Criterion.Main (defaultMain, bench, whnfIO)
 
 main = defaultMain

@@ -1,6 +1,8 @@
 module Main (main) where
 
 import MPD
+import MPD.Core
+import MPD.Commands.Parser
 import Criterion.Main
 
 main = defaultMain [
