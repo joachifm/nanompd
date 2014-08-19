@@ -596,8 +596,8 @@ data SongInfo = SongInfo
   , songId :: Maybe SongId
   } deriving (Show)
 
-viewTag :: SongInfo -> Label -> Maybe Plain
-viewTag si l = lookup l (_songTags si)
+viewTag :: SongInfo -> Label -> Maybe Text
+viewTag si l = lookup l (songTags si)
 
 songInfo :: Parser SongInfo
 songInfo = SongInfo <$>
