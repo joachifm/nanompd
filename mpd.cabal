@@ -36,6 +36,10 @@ test-suite specs
   hs-source-dirs: src test
   main-is: Spec.hs
 
+  other-modules:
+      MPD.CommandStrSpec
+    , MPD.ParserSpec
+
   build-depends:
       base
     , errors
