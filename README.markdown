@@ -48,8 +48,8 @@ nanompd and [libmpd-haskell]
 - A streamlined API for defining new protocol command wrappers simplifies
   the process of extending the command set.
 
-As a result, nanompd is significantly more compact than libmpd-haskell and
-its internals are much easier to reason about.
+As a result, nanompd is more compact than libmpd-haskell and its internals
+are easier to reason about.
 
 [libmpd-haskell]: https://hackage.haskell.org/libmpd
 
