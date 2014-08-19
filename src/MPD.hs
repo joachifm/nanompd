@@ -159,7 +159,7 @@ module MPD
   , Applicative(..)
   , (<$>)
 
-    -- ** From "Control.Error"
+    -- ** From "Control.Monad.Trans.Either"
   , EitherT(runEitherT)
 
     -- ** From "Control.Monad.Trans"
@@ -168,7 +168,7 @@ module MPD
 
 import Control.Applicative
 import Control.Arrow (second)
-import Control.Error (EitherT(..), left, right)
+import Control.Monad.Trans.Either (EitherT(..), left, right)
 import qualified Control.Monad.Catch as C
 import Control.Monad (MonadPlus(..), ap, unless)
 import Control.Monad.State (State, evalState, get, put)

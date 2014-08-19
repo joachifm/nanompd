@@ -33,7 +33,7 @@ library
 
   build-depends:
       base == 4.*
-    , errors
+    , either
     , exceptions
     , mtl
     , network
@@ -62,7 +62,7 @@ test-suite specs
 
   build-depends:
       base
-    , errors
+    , either
     , exceptions
     , mtl
     , network

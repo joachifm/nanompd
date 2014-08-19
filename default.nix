@@ -20,7 +20,7 @@ with haskellPackages; cabal.mkDerivation (self: rec {
   src = ./.;
   propagatedBuildDepends = [ cabalInstall ];
   buildDepends = [
-    cabalInstall errors exceptions mtl network
+    cabalInstall either exceptions mtl network
   ];
   testDepends = buildDepends;
   doCheck = false;
