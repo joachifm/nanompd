@@ -1,5 +1,4 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE DeriveFunctor     #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Trustworthy       #-}
 
@@ -456,7 +455,9 @@ render (CommandStr as) = unwords (filter (not . null) as)
 -- $command
 
 data Command a = Command [CommandStr] (Parser a)
-  deriving (Functor)
+
+instance Functor Command where
+  fmap f (Command q p) = Command q (fmap f p)
 
 instance Applicative Command where
   pure x = Command [] (pure x)
