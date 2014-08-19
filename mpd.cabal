@@ -1,8 +1,17 @@
 name: mpd
 version: 0.0.0.0
+
 synopsis:
   A library for scripting client interactions with MPD,
   the Music Player Daemon.
+description:
+  nanompd aims to abstract away the boring parts of
+  interfacing with MPD, primarily in service of higher-level
+  client applications.
+category: Network, Sound
+
+maintainer:
+  joachifm@fastmail.fm
 
 license: MIT
 license-file: COPYING
