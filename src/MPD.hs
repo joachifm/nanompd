@@ -191,8 +191,8 @@ than by combining those already provided.
 
 Command wrappers are turned into client actions (computations
 against a running server) with 'run'.
-All MPD client actions are executed within a @EitherT ClientError@ monad;
-to unwrap the result, use 'runEitherT'.
+All MPD client actions are executed within a @EitherT ClientError@ monad,
+use 'runEitherT' to unwrap the result.
 Currently, all 'Command's executed by 'run' acquire a separate connection
 to the MPD server.
 
