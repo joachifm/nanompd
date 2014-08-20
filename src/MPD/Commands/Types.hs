@@ -1,9 +1,8 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Safe #-}
 
 {-|
 Module      : MPD.Commands.Types
-Description : Protocol object types
 Copyright   : (c) Joachim Fasting, 2014
 
 License     : MIT

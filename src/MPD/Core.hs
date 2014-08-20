@@ -3,13 +3,16 @@
 
 {-|
 Module      : MPD.Core
-Description : Scripting client interactions with MPD
+Description : Core definitions
 Copyright   : (c) Joachim Fasting, 2014
 
 License     : MIT
 Maintainer  : joachifm@fastmail.fm
 Stability   : unstable
 Portability : unportable
+
+This module defines types and functions for scripting client interactions
+with MPD, mainly useful for users wishing to extend the command set.
 -}
 
 module MPD.Core
@@ -48,7 +51,7 @@ module MPD.Core
   , Parser
   , parse
 
-    -- * Scalars
+    -- ** Scalars
   , Text(..)
   , textP
   , readP
@@ -56,7 +59,7 @@ module MPD.Core
   , intP
   , doubleP
 
-    -- * Objects
+    -- ** Objects
   , Label
   , labelP
   , fieldK

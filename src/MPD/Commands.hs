@@ -1,18 +1,16 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Safe #-}
 
 {-|
 Module      : MPD.Commands
-Description : MPD protocol command wrappers
+Description : Protocol command wrappers
 Copyright   : (c) Joachim Fasting, 2014
 
 License     : MIT
 Maintainer  : joachifm@fastmail.fm
 Stability   : unstable
 Portability : unportable
-
-Ready-made MPD protocol command wrappers.
 -}
 
 module MPD.Commands

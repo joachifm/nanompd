@@ -1,10 +1,9 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Safe #-}
 
 {-|
 Module      : MPD.Commands.Parser
-Description : Protocol object parsers
 Copyright   : (c) Joachim Fasting, 2014
 
 License     : MIT
