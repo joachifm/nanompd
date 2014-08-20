@@ -53,7 +53,7 @@ Send patches via email or submit a pull request on
 [GitHub](https://github.com/joachifm/nanompd).
 Test cases and benchmarks are highly appreciated.
 Feel free to append your name to the list of
-[CONTRIBUTORS](../blob/master/CONTRIBUTORS) if you deem it appropriate to do
+[CONTRIBUTORS](../master/CONTRIBUTORS) if you deem it appropriate to do
 so (anything above fixing a single-letter typo warrants a mention).
 
 # Resources
@@ -64,4 +64,4 @@ so (anything above fixing a single-letter typo warrants a mention).
 # Licence
 
 nanompd is distributed under the MIT licence
-(see [COPYING](../blob/master/COPYING)).
+(see [COPYING](../master/COPYING)).
