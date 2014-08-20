@@ -13,11 +13,11 @@ and leave the fun stuff to the client implementor.
 
 To install nanompd, do
 
-   (cd nanompd && cabal install)
+    (cd nanompd && cabal install)
 
 [Nix](https://nixos.org/nix) users may do
 
-   nix-shell
+    nix-shell
 
 to obtain a working environment containing everything you'd need to
 hack and use nanompd.
@@ -26,7 +26,7 @@ hack and use nanompd.
 
 Interactive use looks like this
 
-   MPD> run ((,) <$> currentSong <*> status)
+    MPD> run ((,) <$> currentSong <*> status)
 
 See the haddocks for details.
 
