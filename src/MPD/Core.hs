@@ -88,6 +88,7 @@ import Control.Monad (MonadPlus(..), ap, unless)
 import Control.Monad.State (State, evalState, get, put)
 import Control.Monad.Trans (MonadIO(..))
 import Data.Functor (void)
+import Data.Maybe (listToMaybe)
 import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import Network (HostName, PortID(..), connectTo)
@@ -225,11 +226,7 @@ doubleP = readP "double"
 
 -- Convert value parser into a line parser (i.e., consumes an entire line)
 liftP :: (String -> Either String a) -> Parser a
-liftP p = P $ do
-  st <- get
-  case st of
-    [x] -> return $ p x
-    _   -> return (Left "liftP: empty input")
+liftP p = P $ (maybe (Left "liftP: empty input") p . listToMaybe) <$> get
 
 -- Object parser
 
