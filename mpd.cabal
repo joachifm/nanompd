@@ -10,8 +10,9 @@ description:
   client applications.
 category: Network, Sound
 
-maintainer:
-  joachifm@fastmail.fm
+maintainer: joachifm@fastmail.fm
+homepage: https://github.com/joachifm/nanompd#readme
+bug-reports: https://github.com/joachifm/nanompd/issues
 
 license: MIT
 license-file: COPYING
