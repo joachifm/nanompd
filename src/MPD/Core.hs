@@ -202,6 +202,9 @@ readP n i = case reads i of
 
 type Label = String
 
+labelP :: String -> Either String Label
+labelP = Right
+
 newtype Text = Text { unText :: String } deriving (Show)
 
 instance IsString Text where
@@ -212,9 +215,6 @@ instance CommandArg Text where
 
 textP :: String -> Either String Text
 textP = Right . Text
-
-labelP :: String -> Either String String
-labelP = Right
 
 boolP :: String -> Either String Bool
 boolP "0" = Right False
