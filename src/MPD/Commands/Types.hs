@@ -38,6 +38,7 @@ module MPD.Commands.Types (
 import MPD.Core
 
 import Data.String (IsString(..))
+import qualified Data.ByteString.Char8 as SB8
 
 ------------------------------------------------------------------------
 -- $scalar
@@ -51,13 +52,14 @@ type Volume = Int
 
 type Date = Text
 
-newtype Path = Path { unPath :: String } deriving (Show)
+-- XXX: does it make sense to use ByteString here?
+newtype Path = Path { unPath :: ByteString } deriving (Show)
 
 instance IsString Path where
-  fromString = Path
+  fromString = Path . SB8.pack
 
 instance CommandArg Path where
-  fromArg (Path x) = '"' : x ++ "\""
+  fromArg (Path x) = '"' : SB8.unpack x ++ "\""
 
 newtype Range = Range (Int, Int)
 

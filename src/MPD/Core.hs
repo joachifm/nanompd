@@ -1,4 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Trustworthy #-}
 
 {-|
@@ -52,7 +53,6 @@ module MPD.Core
   , parse
 
     -- ** Scalars
-  , Text(..)
   , textP
   , readP
   , boolP
@@ -61,12 +61,17 @@ module MPD.Core
 
     -- ** Objects
   , Label
-  , labelP
   , fieldK
   , field
   , liftP
 
     -- * Re-exports
+
+    -- ** From "Data.ByteString"
+  , SB.ByteString
+
+    -- ** From "Data.Text"
+  , T.Text
 
     -- ** From "Network"
   , HostName
@@ -83,6 +88,13 @@ module MPD.Core
   , MonadIO(..)
   ) where
 
+import qualified Data.Attoparsec.ByteString as A
+import qualified Data.Attoparsec.ByteString.Char8 as A8
+import qualified Data.ByteString as SB
+import qualified Data.ByteString.Char8 as SB8
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+
 import Control.Applicative
 import Control.Arrow (second)
 import Control.Monad.Trans.Either (EitherT(..), left, right)
@@ -95,7 +107,7 @@ import Data.Maybe (listToMaybe)
 import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import Network (HostName, PortID(..), connectTo)
-import System.IO (Handle, hGetLine, hPutStr, hClose)
+import System.IO (Handle, hPutStr, hClose)
 import System.IO.Error (tryIOError)
 import qualified Data.List as List
 
@@ -168,7 +180,7 @@ and 'Either' (choice).
 ------------------------------------------------------------------------
 -- $parser
 
-newtype Parser a = P { runP :: State [String] (Either String a) }
+newtype Parser a = P { runP :: State [SB.ByteString] (Either String a) }
 
 instance Functor Parser where
   fmap f (P g) = P (fmap (fmap f) g)
@@ -179,7 +191,7 @@ instance Monad Parser where
   fail     = P . return . Left
 
 instance MonadPlus Parser where
-  mzero = P $ return (Left "")
+  mzero = P $ return (Left mempty)
   f `mplus` k = P $ either (\_ -> runP k) (return . Right) =<< runP f
 
 instance Applicative Parser where
@@ -190,70 +202,61 @@ instance Alternative Parser where
   empty = mzero
   (<|>) = mplus
 
-parse :: Parser a -> [String] -> Either String a
+parse :: Parser a -> [SB.ByteString] -> Either String a
 parse = evalState . runP
 
 -- Value parsers
 
-readP :: (Read a) => String -> String -> Either String a
-readP n i = case reads i of
-  [(r, "")] -> Right r
-  _         -> Left ("expected " ++ n ++ "; got " ++ i)
+type Label = SB.ByteString
 
-type Label = String
+textP :: A.Parser T.Text
+textP = T.decodeUtf8 <$> A.takeByteString
 
-labelP :: String -> Either String Label
-labelP = Right
+readP :: (Read a) => A.Parser a
+readP = do
+  x <- A.takeByteString
+  case reads (SB8.unpack x) of
+   [(r, "")] -> return r
+   _ -> mzero
 
-newtype Text = Text { unText :: String } deriving (Show)
+boolP :: A.Parser Bool
+boolP = pure True <* A8.char '1' <|> pure False <* A8.char '0'
 
-instance IsString Text where
-  fromString = Text
+intP :: A.Parser Int
+intP = A8.decimal
 
-instance CommandArg Text where
-  fromArg (Text x) = x
-
-textP :: String -> Either String Text
-textP = Right . Text
-
-boolP :: String -> Either String Bool
-boolP "0" = Right False
-boolP "1" = Right True
-boolP i   = Left ("expected 0 or 1; got " ++ i)
-
-intP :: String -> Either String Int
-intP = readP "[0-9]"
-
-doubleP :: String -> Either String Double
-doubleP = readP "double"
+doubleP :: A.Parser Double
+doubleP = A8.double
 
 -- Convert value parser into a line parser (i.e., consumes an entire line)
-liftP :: (String -> Either String a) -> Parser a
-liftP p = P $ (maybe (Left "liftP: empty input") p . listToMaybe) <$> get
+liftP :: A.Parser a -> Parser a
+liftP p = P $ (maybe (Left "liftP: empty input") (A.parseOnly p) . listToMaybe) <$> get
 
 -- Object parser
 
-fieldK :: Label -> (String -> Either String a) -> Parser (Label, a)
+fieldK :: Label -> A.Parser a -> Parser (Label, a)
 fieldK k v = P $ do
   st <- get
   case st of
-    []   -> return $ Left ("field " ++ k ++ ": empty input")
-    l:ls -> case pair l of
+   []   -> return $ Left "field: empty input"
+   ln:ls -> do
+     case pair ln of
       (k', v')
-        | k' == k -> case v v' of
+        | k' == k -> case A.parseOnly v v' of
           Right x -> put ls >> return (Right (k, x))
-          Left e  -> return (Left $ "field: parse value failed: " ++ e)
-        | otherwise -> return (Left $ "field: expected key " ++ k ++ "; got " ++ k')
+          Left e   -> return (Left $ "field: parse value failed: " ++ show e)
+        | otherwise -> return (Left $ "field: expected key " ++ show k ++ "; got " ++ show k')
   where
-    pair s = let (hd, tl) = break (== ':') s in (hd, drop 2 tl)
+    pair s = let (hd, tl) = SB8.break (== ':') s in (hd, SB.drop 2 tl)
 
-field :: Label -> (String -> Either String a) -> Parser a
+field :: Label -> A.Parser a -> Parser a
 field k v = fmap snd (fieldK k v)
 {-# INLINE field #-}
 
 ------------------------------------------------------------------------
 -- $commandStr
 
+-- XXX: should be [Text]
 data CommandStr = CommandStr [String]
   deriving (Show)
 
@@ -287,6 +290,9 @@ instance CommandArg Double where
 
 instance CommandArg Bool where
   fromArg x = if x then "1" else "0"
+
+instance CommandArg T.Text where
+  fromArg x = T.unpack x
 
 (.+) :: (CommandArg a) => CommandStr -> a -> CommandStr
 CommandStr s .+ a = CommandStr (s ++ [fromArg a])
@@ -334,15 +340,15 @@ send hdl = connIO . hPutStr hdl . (\xs -> unlines $ case xs of
   [x] -> [x]
   _   -> ("command_list_ok_begin" : xs) ++ ["command_list_end"])
 
-recv :: (MonadIO m) => Handle -> EitherT ClientError m [String]
+recv :: (MonadIO m) => Handle -> EitherT ClientError m [SB.ByteString]
 recv hdl = go
   where
     go = do
-      ln <- connIO (hGetLine hdl)
+      ln <- connIO (SB.hGetLine hdl)
       if ln == "OK"
         then right []
-      else if "ACK" `List.isPrefixOf` ln
-        then left $ ProtocolError (List.drop 4 ln)
+      else if "ACK" `SB.isPrefixOf` ln
+        then left . ProtocolError . T.decodeUtf8 $ SB.drop 4 ln
       else fmap (ln :) go
 
 withConn
@@ -362,25 +368,25 @@ open
   :: (MonadIO m)
   => HostName
   -> PortID
-  -> EitherT ClientError m (Handle, String)
+  -> EitherT ClientError m (Handle, SB.ByteString)
 open host port = do
   hdl <- connIO (connectTo host port)
-  ver <- connIO (hGetLine hdl)
-  unless ("OK MPD " `List.isPrefixOf` ver) $ do
+  ver <- connIO (SB.hGetLine hdl)
+  unless ("OK MPD " `SB.isPrefixOf` ver) $ do
     close hdl
     left InvalidHost
   return (hdl, ver)
 
 close :: (MonadIO m) => Handle -> EitherT ClientError m ()
 close hdl = void . liftIO $
-  tryIOError (hPutStr hdl "close\n" >> hClose hdl)
+  tryIOError (SB.hPut hdl "close\n" >> hClose hdl)
 
 ------------------------------------------------------------------------
 -- $run  
 
 data ClientError
   = ParseError String
-  | ProtocolError String
+  | ProtocolError T.Text
   | InvalidHost
   | ConnError IOError
   | Custom String

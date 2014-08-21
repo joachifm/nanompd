@@ -1,6 +1,6 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Safe #-}
+{-# LANGUAGE Trustworthy #-}
 
 {-|
 Module      : MPD.Commands.Parser
@@ -30,16 +30,18 @@ module MPD.Commands.Parser (
 
 import MPD.Core
 import MPD.Commands.Types
+
 import Control.Applicative
+import qualified Data.Attoparsec.ByteString as A
 
 ------------------------------------------------------------------------
 -- $scalar
 
-dateP :: String -> Either String Date
+dateP :: A.Parser Date
 dateP = textP
 
-pathP :: String -> Either String Path
-pathP = Right . Path
+pathP :: A.Parser Path
+pathP = Path <$> A.takeByteString
 
 ------------------------------------------------------------------------
 -- $object

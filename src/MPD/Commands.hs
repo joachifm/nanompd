@@ -103,10 +103,10 @@ playlistInfo :: Command [SongInfo]
 playlistInfo = command "playlistinfo" (many songInfo)
 
 -- | List changes to the playlist since a given version.
-plChangesPosId :: Int -> Command [(Label, Text)]
+plChangesPosId :: Int -> Command [(Text, Text)]
 plChangesPosId v = command ("plchangesposid" .+ v) (many p)
   where
-    p = (,) <$> field "cpos" labelP <*> field "id" textP
+    p = (,) <$> field "cpos" textP <*> field "id" textP
 
 -- | Shuffle current playlist.
 shuffle :: Maybe Range -> Command ()
