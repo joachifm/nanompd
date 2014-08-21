@@ -1,4 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Safe #-}
 
 {-|
@@ -37,8 +38,9 @@ module MPD.Commands.Types (
 
 import MPD.Core
 
+import Data.Monoid ((<>))
 import Data.String (IsString(..))
-import qualified Data.ByteString.Char8 as SB8
+import qualified Data.Text as T
 
 ------------------------------------------------------------------------
 -- $scalar
@@ -52,19 +54,18 @@ type Volume = Int
 
 type Date = Text
 
--- XXX: does it make sense to use ByteString here?
-newtype Path = Path { unPath :: ByteString } deriving (Show)
+newtype Path = Path { unPath :: Text } deriving (Show)
 
 instance IsString Path where
-  fromString = Path . SB8.pack
+  fromString = Path . T.pack
 
 instance CommandArg Path where
-  fromArg (Path x) = '"' : SB8.unpack x ++ "\""
+  fromArg (Path x) = T.concat [ "\"", x, "\"" ]
 
 newtype Range = Range (Int, Int)
 
 instance CommandArg Range where
-  fromArg (Range (a, b)) = fromArg a ++ ":" ++ fromArg b
+  fromArg (Range (a, b)) = fromArg a <> ":" <> fromArg b
 
 ------------------------------------------------------------------------
 -- $object

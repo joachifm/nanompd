@@ -41,7 +41,7 @@ dateP :: A.Parser Date
 dateP = textP
 
 pathP :: A.Parser Path
-pathP = Path <$> A.takeByteString
+pathP = Path <$> textP
 
 ------------------------------------------------------------------------
 -- $object
@@ -52,14 +52,12 @@ lsEntry =
   LsDir <$> field "directory" pathP <|>
   LsPlaylist <$> field "playlist" pathP
 
-
 lsEntryInfo :: Parser LsEntryInfo
 lsEntryInfo =
   LsSongInfo <$> songInfo <|>
   (LsDirInfo <$> field "directory" pathP <*> field "Last-Modified" dateP) <|>
   (LsPlaylistInfo <$> field "playlist" pathP
                   <*> field "Last-Modified" dateP)
-
 
 statusInfo :: Parser StatusInfo
 statusInfo = StatusInfo <$>

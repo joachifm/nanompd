@@ -107,7 +107,7 @@ import Data.Maybe (listToMaybe)
 import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import Network (HostName, PortID(..), connectTo)
-import System.IO (Handle, hPutStr, hClose)
+import System.IO (Handle, hClose)
 import System.IO.Error (tryIOError)
 import qualified Data.List as List
 
@@ -256,8 +256,7 @@ field k v = fmap snd (fieldK k v)
 ------------------------------------------------------------------------
 -- $commandStr
 
--- XXX: should be [Text]
-data CommandStr = CommandStr [String]
+data CommandStr = CommandStr [T.Text]
   deriving (Show)
 
 instance Monoid CommandStr where
@@ -265,10 +264,10 @@ instance Monoid CommandStr where
   CommandStr a `mappend` CommandStr b = CommandStr (a `mappend` b)
 
 instance IsString CommandStr where
-  fromString x = CommandStr [x]
+  fromString x = CommandStr [T.pack x]
 
 class CommandArg a where
-  fromArg :: a -> String
+  fromArg :: a -> T.Text
 
 instance (CommandArg a) => CommandArg (Maybe a) where
   fromArg = maybe mempty fromArg
@@ -277,28 +276,28 @@ instance (CommandArg a, CommandArg b) => CommandArg (Either a b) where
   fromArg = either fromArg fromArg
 
 instance (CommandArg a) => CommandArg [a] where
-  fromArg m = unwords (map fromArg m)
+  fromArg m = T.unwords (map fromArg m)
 
 instance CommandArg Int where
-  fromArg = show
+  fromArg = T.pack . show
 
 instance CommandArg Integer where
-  fromArg = show
+  fromArg = T.pack . show
 
 instance CommandArg Double where
-  fromArg = show
+  fromArg = T.pack . show
 
 instance CommandArg Bool where
   fromArg x = if x then "1" else "0"
 
 instance CommandArg T.Text where
-  fromArg x = T.unpack x
+  fromArg = id
 
 (.+) :: (CommandArg a) => CommandStr -> a -> CommandStr
 CommandStr s .+ a = CommandStr (s ++ [fromArg a])
 
-render :: CommandStr -> String
-render (CommandStr as) = unwords (filter (not . null) as)
+render :: CommandStr -> T.Text
+render (CommandStr as) = T.unwords (filter (not . T.null) as)
 
 ------------------------------------------------------------------------
 -- $command
@@ -328,17 +327,21 @@ connIO m = either (left . ConnError) return =<< liftIO (tryIOError m)
 getResponse
   :: (MonadIO m)
   => Handle
-  -> [String]
+  -> [CommandStr]
   -> Parser a
   -> EitherT ClientError m a
 getResponse hdl q p = do
   send hdl q
   either (left . ParseError) right =<< (parse p `fmap` recv hdl)
 
-send :: (MonadIO m) => Handle -> [String] -> EitherT ClientError m ()
-send hdl = connIO . hPutStr hdl . (\xs -> unlines $ case xs of
-  [x] -> [x]
-  _   -> ("command_list_ok_begin" : xs) ++ ["command_list_end"])
+send :: (MonadIO m) => Handle -> [CommandStr] -> EitherT ClientError m ()
+send hdl = connIO . SB.hPut hdl . pack
+
+pack :: [CommandStr] -> SB.ByteString
+pack = T.encodeUtf8 . T.unlines . f . map render
+  where
+    f [x] = [x]
+    f xs  = ("command_list_ok_begin" : xs) ++ ["command_list_end"]
 
 recv :: (MonadIO m) => Handle -> EitherT ClientError m [SB.ByteString]
 recv hdl = go
@@ -399,7 +402,7 @@ runWith
   -> Command a
   -> EitherT ClientError m a
 runWith host port (Command q p) = withConn host port $ \hdl ->
-  getResponse hdl (map render q) p
+  getResponse hdl q p
 
 run
   :: (C.MonadMask m, MonadIO m)
