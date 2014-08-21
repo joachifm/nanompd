@@ -95,7 +95,7 @@ data StatusInfo = StatusInfo
   , statusPlaybackState :: PlaybackState
   , statusSongPos :: Maybe SongPos
   , statusSongId :: Maybe SongId
-  , statusTime :: Maybe (Int, Int)
+  , statusTime :: Maybe (Seconds, Seconds)
   , statusElapsedTime :: Maybe Double
   , statusBitrate :: Maybe Int
   , statusAudio :: Maybe (Int, Int, Int)
