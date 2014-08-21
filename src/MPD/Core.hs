@@ -360,12 +360,10 @@ withConn
   -> PortID
   -> (Handle -> EitherT ClientError m a)
   -> EitherT ClientError m a
-withConn host port m = EitherT $ C.bracket
-  (runEitherT $ open host port)
-  (\eh -> case eh of Left e         -> return (Left e)
-                     Right (hdl, _) -> runEitherT (close hdl))
-  (\eh -> case eh of Left e         -> return (Left e)
-                     Right (hdl, _) -> runEitherT (m hdl))
+withConn host port m = EitherT $
+  C.bracket (runEitherT $ open host port) (eh close) (eh m)
+  where
+    eh f = either (return . Left) (runEitherT . f . fst)
 
 open
   :: (MonadIO m)
