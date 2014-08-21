@@ -67,9 +67,6 @@ module MPD.Core
 
     -- * Re-exports
 
-    -- ** From "Data.ByteString"
-  , SB.ByteString
-
     -- ** From "Data.Text"
   , T.Text
 
@@ -82,10 +79,7 @@ module MPD.Core
   , (<$>)
 
     -- ** From "Control.Monad.Trans.Either"
-  , EitherT(runEitherT)
-
-    -- ** From "Control.Monad.Trans"
-  , MonadIO(..)
+  , runEitherT
   ) where
 
 import qualified Data.Attoparsec.ByteString as A

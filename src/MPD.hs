@@ -31,7 +31,7 @@ import MPD.Core (
   , runWith
   , Label
   , Text
-  , EitherT(..)
+  , runEitherT
   )
 import Prelude hiding (repeat)
 
