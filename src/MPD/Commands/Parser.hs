@@ -19,6 +19,7 @@ module MPD.Commands.Parser (
     -- $scalar
     dateP
   , pathP
+  , volumeP
     
     -- * Objects
     -- $object
@@ -43,6 +44,9 @@ dateP = textP
 pathP :: A.Parser Path
 pathP = Path <$> textP
 
+volumeP :: A.Parser Volume
+volumeP = intP
+
 ------------------------------------------------------------------------
 -- $object
 
@@ -61,7 +65,7 @@ lsEntryInfo =
 
 statusInfo :: Parser StatusInfo
 statusInfo = StatusInfo <$>
-  field "volume" intP <*>
+  field "volume" volumeP <*>
   field "repeat" boolP <*>
   field "random" boolP <*>
   field "single" boolP <*>
