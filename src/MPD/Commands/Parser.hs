@@ -46,8 +46,8 @@ dateP = textP
 pathP :: A.Parser Path
 pathP = Path <$> textP
 
-volumeP :: A.Parser Volume
-volumeP = intP
+volumeP :: A.Parser (Maybe Volume)
+volumeP = pure Nothing <* "-1" <|> Just <$> intP
 
 timeElapsedP :: A.Parser (Int, Int)
 timeElapsedP = (,) <$> A.decimal <* A.char ':' <*> A.decimal

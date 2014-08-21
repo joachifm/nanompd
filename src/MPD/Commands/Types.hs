@@ -83,7 +83,8 @@ data LsEntryInfo
     deriving (Show)
 
 data StatusInfo = StatusInfo
-  { statusVolume :: Volume
+  { statusVolume :: Maybe Volume
+    -- ^ 'Just' the current volume (0-100) or 'Nothing' if missing mixer.
   , statusRepeatEnabled :: Bool
   , statusRandomEnabled :: Bool
   , statusSingleEnabled :: Bool
