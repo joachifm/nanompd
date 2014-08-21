@@ -94,10 +94,10 @@ data StatusInfo = StatusInfo
   , statusPlaybackState :: PlaybackState
   , statusSongPos :: Maybe SongPos
   , statusSongId :: Maybe SongId
-  , statusTime :: Maybe Text -- XXX: current:total
+  , statusTime :: Maybe (Int, Int)
   , statusElapsedTime :: Maybe Double
   , statusBitrate :: Maybe Int
-  , statusAudio :: Maybe Text -- XXX: a:b:c
+  , statusAudio :: Maybe (Int, Int, Int)
   , statusNextSongPos :: Maybe SongPos
   , statusNextSongId :: Maybe SongId
   } deriving (Show)

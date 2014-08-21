@@ -7,6 +7,7 @@ import MPD.Core
 import MPD.Commands.Parser
 
 import Control.Applicative
+import qualified Data.Attoparsec.ByteString as A
 import Data.Monoid (mconcat, (<>))
 import Test.Hspec
 import Test.Hspec.Expectations.Contrib
@@ -16,6 +17,26 @@ import Test.Hspec.Expectations.Contrib
 
 spec :: Spec
 spec = do
+
+  it "dateP" $
+    A.parseOnly dateP "2014-05-16T17:33:26Z"
+    `shouldSatisfy` isRight
+
+  it "volumeP" $
+    A.parseOnly volumeP "100"
+    `shouldSatisfy` isRight
+
+  it "pathP" $
+    A.parseOnly pathP "foo/bar.mp3"
+    `shouldSatisfy` isRight
+
+  it "timeElapsedP" $
+    A.parseOnly timeElapsedP "10:120"
+    `shouldSatisfy` isRight
+
+  it "audioP" $
+    A.parseOnly audioP "4800:2:24"
+    `shouldSatisfy` isRight
 
   it "songInfo 1" $
     songInfo `shouldAccept` songInfo1

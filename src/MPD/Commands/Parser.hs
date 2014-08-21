@@ -17,8 +17,10 @@ Parsers for MPD protocol objects.
 module MPD.Commands.Parser (
     -- * Scalars
     -- $scalar
-    dateP
+    audioP
+  , dateP
   , pathP
+  , timeElapsedP
   , volumeP
     
     -- * Objects
@@ -33,7 +35,7 @@ import MPD.Core
 import MPD.Commands.Types
 
 import Control.Applicative
-import qualified Data.Attoparsec.ByteString as A
+import qualified Data.Attoparsec.ByteString.Char8 as A
 
 ------------------------------------------------------------------------
 -- $scalar
@@ -46,6 +48,14 @@ pathP = Path <$> textP
 
 volumeP :: A.Parser Volume
 volumeP = intP
+
+timeElapsedP :: A.Parser (Int, Int)
+timeElapsedP = (,) <$> A.decimal <* A.char ':' <*> A.decimal
+
+audioP :: A.Parser (Int, Int, Int)
+audioP = (,,) <$> A.decimal <* A.char ':'
+              <*> A.decimal <* A.char ':'
+              <*> A.decimal
 
 ------------------------------------------------------------------------
 -- $object
@@ -76,10 +86,10 @@ statusInfo = StatusInfo <$>
   field "state" textP <*>
   optional (field "song" intP) <*>
   optional (field "songid" intP) <*>
-  optional (field "time" textP) <*>
+  optional (field "time" timeElapsedP) <*>
   optional (field "elapsed" doubleP) <*>
   optional (field "bitrate" intP) <*>
-  optional (field "audio" textP) <*>
+  optional (field "audio" audioP) <*>
   optional (field "nextsong" intP) <*>
   optional (field "nextsongid" intP)
 
