@@ -18,6 +18,7 @@ module MPD.Commands.Types (
     -- * Scalars
     -- $scalar
     Date
+  , Metadata(..)
   , PlaybackState
   , Seconds
   , SongId
@@ -66,6 +67,12 @@ newtype Range = Range (Int, Int)
 
 instance CommandArg Range where
   fromArg (Range (a, b)) = fromArg a <> ":" <> fromArg b
+
+data Metadata = Artist | Title
+  deriving (Show)
+
+instance CommandArg Metadata where
+  fromArg = T.pack . show
 
 ------------------------------------------------------------------------
 -- $object

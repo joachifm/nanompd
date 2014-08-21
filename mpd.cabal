@@ -47,6 +47,7 @@ library
       MPD
     , MPD.Core
     , MPD.Commands
+    , MPD.Commands.Query
     , MPD.Commands.Parser
     , MPD.Commands.Types
 

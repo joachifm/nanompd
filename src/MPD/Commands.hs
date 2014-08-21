@@ -62,10 +62,12 @@ module MPD.Commands
   , noidle
   , status
 
+  , module MPD.Commands.Query
   , module MPD.Commands.Types
   ) where
 
 import MPD.Core
+import MPD.Commands.Query
 import MPD.Commands.Parser
 import MPD.Commands.Types
 
@@ -116,8 +118,8 @@ shuffle mbRange = command ("shuffle" .+ mbRange) (return ())
 -- Database
 
 -- | Find items where @meta = value@ exactly.
-find :: Text -> Text -> Command [SongInfo]
-find meta value = command ("find" .+ meta .+ value) (many songInfo)
+find :: Query -> Command [SongInfo]
+find qry = command ("find" .+ qry) (many songInfo)
 
 -- | A recursive 'lsInfo'.
 listAllInfo :: Maybe Path -> Command [LsEntryInfo]
