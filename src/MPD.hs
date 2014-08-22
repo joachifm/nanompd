@@ -32,6 +32,8 @@ import MPD.Core (
   , Label
   , Text
   , runEitherT
+  , HostName
+  , PortID(..)
   )
 import Prelude hiding (repeat)
 
