@@ -1,6 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Trustworthy #-}
+{-# LANGUAGE Safe #-}
 
 {-|
 Module      : MPD.Core
@@ -26,52 +25,25 @@ module MPD.Core
 
     -- * Running commands
     -- $run
-    ClientError(..)
-  , run
+    run
   , runWith
 
     -- * Connection primitives
-    -- $connection
-  , withConn
-  , getResponse
+  , module MPD.Core.Conn
 
     -- * Command interface
-    -- $command
-  , Command
-  , command
+  , module MPD.Core.Command
 
     -- * Convenient syntax for protocol command strings
-    -- $commandStr
-  , CommandStr
-  , CommandArg(..)
-  , (.+)
-  , render
+  , module MPD.Core.CommandStr
 
-    -- * Response parser
-    -- $parser
-  , Parser
-  , parse
-  , liftP
-
-    -- ** Scalars
-  , boolP
-  , doubleP
-  , intP
-  , textP
-
-    -- ** Objects
-  , Label
-  , pair
-  , field
+  , module MPD.Core.ClientError
+  , module MPD.Core.Parser
 
     -- * Re-exports
 
     -- ** From "Data.Text"
   , T.Text
-
-    -- ** From "Network"
-  , HostName
-  , PortID(..)
 
     -- ** From "Control.Applicative"
   , Applicative(..)
@@ -81,25 +53,17 @@ module MPD.Core
   , runEitherT
   ) where
 
-import qualified Data.Attoparsec.ByteString.Char8 as A
-import qualified Data.ByteString as SB
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
+import MPD.Core.ClientError
+import MPD.Core.Command
+import MPD.Core.CommandStr
+import MPD.Core.Conn
+import MPD.Core.Parser
 
 import Control.Applicative
-import Control.Arrow (second)
-import Control.Monad.Trans.Either (EitherT(..), left, right)
-import qualified Control.Monad.Catch as C
-import Control.Monad (MonadPlus(..), ap, unless)
-import Control.Monad.State (State, evalState, get, put)
 import Control.Monad.Trans (MonadIO(..))
-import Data.Functor (void)
-import Data.Monoid (Monoid(..))
-import Data.String (IsString(..))
-import Network (HostName, PortID(..), connectTo)
-import System.IO (Handle, hClose)
-import System.IO.Error (tryIOError)
-import qualified Data.List as List
+import Control.Monad.Trans.Either (EitherT(..))
+import qualified Control.Monad.Catch as C
+import qualified Data.Text as T
 
 {-$overview
 The client API is structured around the 'Command' type, which
@@ -168,226 +132,7 @@ and 'Either' (choice).
 -}
 
 ------------------------------------------------------------------------
--- $parser
-
-newtype Parser a = P { runP :: State [SB.ByteString] (Either String a) }
-
-instance Functor Parser where
-  fmap f (P g) = P (fmap (fmap f) g)
-
-instance Monad Parser where
-  return x = P $ return (Right x)
-  f >>= k  = P $ either (return . Left) (runP . k) =<< runP f
-  fail     = P . return . Left
-
-instance MonadPlus Parser where
-  mzero = P $ return (Left mempty)
-  f `mplus` k = P $ either (\_ -> runP k) (return . Right) =<< runP f
-
-instance Applicative Parser where
-  pure  = return
-  (<*>) = ap
-
-instance Alternative Parser where
-  empty = mzero
-  (<|>) = mplus
-
-parse :: Parser a -> [SB.ByteString] -> Either String a
-parse = evalState . runP
-
--- Convert value parser into a line parser (i.e., consumes an entire line)
-liftP :: A.Parser a -> Parser a
-liftP p = P $ do
-  st <- get
-  case st of
-   []   -> return (Left "liftP: empty input")
-   l:ls -> case A.parseOnly p l of
-     Left e  -> return (Left $ "liftP: parse value failed: " ++ e)
-     Right x -> put ls >> return (Right x)
-
--- Value parsers
-
-boolP :: A.Parser Bool
-boolP = pure True <* A.char '1' <|> pure False <* A.char '0'
-
-doubleP :: A.Parser Double
-doubleP = A.double
-
-intP :: A.Parser Int
-intP = A.decimal
-
-textP :: A.Parser T.Text
-textP = T.decodeUtf8 <$> A.takeByteString
-
--- Object parser
-
-type Label = SB.ByteString
-
-pair :: Label -> A.Parser a -> Parser (Label, a)
-pair k p = P $ do
-  st <- get
-  case st of
-   l:ls -> case pairBS l of
-     (k', v)
-       | k' == k -> either (return . Left)
-                           (\x -> put ls >> return (Right (k, x)))
-                           (A.parseOnly p v)
-       | otherwise -> return (Left $ "pair: key mismatch: " ++ show k ++ "/" ++ show k')
-   [] -> return (Left $ "pair: empty input")
-  where
-    pairBS x = let (hd, tl) = SB.break (== 58) {- : -} x in (hd, SB.drop 2 tl)
-
-{-
-Note: the above is more elegantly stated as
-
-pairP :: Label -> A.Parser a -> A.Parser (Label, a)
-pairP k v = (,) <$> (A.string k <* A.string ": ") <*> v
-
-which is about 2x as slow ...
--}
-
-field :: Label -> A.Parser a -> Parser a
-field k v = fmap snd (pair k v)
-
-------------------------------------------------------------------------
--- $commandStr
-
-data CommandStr = CommandStr [T.Text]
-  deriving (Show)
-
-instance Monoid CommandStr where
-  mempty = CommandStr []
-  CommandStr a `mappend` CommandStr b = CommandStr (a `mappend` b)
-
-instance IsString CommandStr where
-  fromString x = CommandStr [T.pack x]
-
-class CommandArg a where
-  fromArg :: a -> T.Text
-
-instance (CommandArg a) => CommandArg (Maybe a) where
-  fromArg = maybe mempty fromArg
-
-instance (CommandArg a, CommandArg b) => CommandArg (Either a b) where
-  fromArg = either fromArg fromArg
-
-instance (CommandArg a) => CommandArg [a] where
-  fromArg m = T.unwords (map fromArg m)
-
-instance CommandArg Int where
-  fromArg = T.pack . show
-
-instance CommandArg Integer where
-  fromArg = T.pack . show
-
-instance CommandArg Double where
-  fromArg = T.pack . show
-
-instance CommandArg Bool where
-  fromArg x = if x then "1" else "0"
-
-instance CommandArg T.Text where
-  fromArg = id
-
-(.+) :: (CommandArg a) => CommandStr -> a -> CommandStr
-CommandStr s .+ a = CommandStr (s ++ [fromArg a])
-
-render :: CommandStr -> T.Text
-render (CommandStr as) = T.unwords (filter (not . T.null) as)
-
-------------------------------------------------------------------------
--- $command
-
-data Command a = Command [CommandStr] (Parser a)
-
-instance Functor Command where
-  fmap f (Command q p) = Command q (fmap f p)
-
-instance Applicative Command where
-  pure x = Command [] (pure x)
-  Command q1 p1 <*> Command q2 p2 = Command (q1 ++ q2) (p1 <*> p2)
-
-command :: CommandStr -> Parser a -> Command a
-command q p = Command [q] $ P $ do
-  (hd, tl) <- second (List.drop 1) . List.break (== "list_OK") <$> get
-  rv <- put hd >> runP p
-  put tl
-  return rv
-
-------------------------------------------------------------------------
--- $connection
-
-connIO :: (MonadIO m) => IO a -> EitherT ClientError m a
-connIO m = either (left . ConnError) return =<< liftIO (tryIOError m)
-
-getResponse
-  :: (MonadIO m)
-  => Handle
-  -> [CommandStr]
-  -> Parser a
-  -> EitherT ClientError m a
-getResponse hdl q p = do
-  send hdl q
-  either (left . ParseError) right =<< (parse p `fmap` recv hdl)
-
-send :: (MonadIO m) => Handle -> [CommandStr] -> EitherT ClientError m ()
-send hdl = connIO . SB.hPut hdl . pack
-
-pack :: [CommandStr] -> SB.ByteString
-pack = T.encodeUtf8 . T.unlines . f . map render
-  where
-    f [x] = [x]
-    f xs  = ("command_list_ok_begin" : xs) ++ ["command_list_end"]
-
-recv :: (MonadIO m) => Handle -> EitherT ClientError m [SB.ByteString]
-recv hdl = go
-  where
-    go = do
-      ln <- connIO (SB.hGetLine hdl)
-      if ln == "OK"
-        then right []
-      else if "ACK" `SB.isPrefixOf` ln
-        then left . ProtocolError . T.decodeUtf8 $ SB.drop 4 ln
-      else fmap (ln :) go
-
-withConn
-  :: (C.MonadMask m, MonadIO m)
-  => HostName
-  -> PortID
-  -> (Handle -> EitherT ClientError m a)
-  -> EitherT ClientError m a
-withConn host port m = EitherT $
-  C.bracket (runEitherT $ open host port) (eh close) (eh m)
-  where
-    eh f = either (return . Left) (runEitherT . f . fst)
-
-open
-  :: (MonadIO m)
-  => HostName
-  -> PortID
-  -> EitherT ClientError m (Handle, SB.ByteString)
-open host port = do
-  hdl <- connIO (connectTo host port)
-  ver <- connIO (SB.hGetLine hdl)
-  unless ("OK MPD " `SB.isPrefixOf` ver) $ do
-    close hdl
-    left InvalidHost
-  return (hdl, ver)
-
-close :: (MonadIO m) => Handle -> EitherT ClientError m ()
-close hdl = void . liftIO $
-  tryIOError (SB.hPut hdl "close\n" >> hClose hdl)
-
-------------------------------------------------------------------------
 -- $run  
-
-data ClientError
-  = ParseError String
-  | ProtocolError T.Text
-  | InvalidHost
-  | ConnError IOError
-  | Custom String
-    deriving (Show)
 
 runWith
   :: (C.MonadMask m, MonadIO m)
@@ -395,8 +140,8 @@ runWith
   -> PortID
   -> Command a
   -> EitherT ClientError m a
-runWith host port (Command q p) = withConn host port $ \hdl ->
-  getResponse hdl q p
+runWith host port cmd = withConn host port $ \hdl ->
+  getResponse hdl (commandReq cmd) (commandRes cmd)
 
 run
   :: (C.MonadMask m, MonadIO m)

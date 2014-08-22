@@ -46,6 +46,11 @@ library
   exposed-modules:
       MPD
     , MPD.Core
+    , MPD.Core.ClientError
+    , MPD.Core.Command
+    , MPD.Core.CommandStr
+    , MPD.Core.Conn
+    , MPD.Core.Parser
     , MPD.Commands
     , MPD.Commands.Query
     , MPD.Commands.Parser
