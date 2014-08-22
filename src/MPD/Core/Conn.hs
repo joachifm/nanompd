@@ -27,6 +27,7 @@ import MPD.Core.ClientError
 import MPD.Core.CommandStr
 import MPD.Core.Parser
 
+import Control.Applicative
 import Control.Monad (unless, void)
 import Control.Monad.Trans (MonadIO(..))
 import Control.Monad.Trans.Either (EitherT(..), left, right)
@@ -35,6 +36,7 @@ import qualified Control.Monad.Catch as C
 import System.IO (Handle, hClose)
 import System.IO.Error (tryIOError)
 
+import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString as SB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -68,10 +70,9 @@ recv hdl = go
   where
     go = do
       ln <- connIO (SB.hGetLine hdl)
-      if ln == "OK"
-        then right []
-      else if "ACK" `SB.isPrefixOf` ln
-        then left . ProtocolError . T.decodeUtf8 $ SB.drop 4 ln
+      if ln == "OK" then right []
+      else if "ACK" `SB.isPrefixOf` ln then left .
+        readProtocolError $ SB.drop 4 ln
       else fmap (ln :) go
 
 ------------------------------------------------------------------------
@@ -110,3 +111,12 @@ close hdl = void . liftIO $
 
 connIO :: (MonadIO m) => IO a -> EitherT ClientError m a
 connIO m = either (left . ConnError) return =<< liftIO (tryIOError m)
+
+readProtocolError :: SB.ByteString -> ClientError
+readProtocolError = either ParseError id . A.parseOnly protocolError
+  where
+    protocolError = ProtocolError <$>
+      (A.char '[' *> A.decimal <* A.char '@') <*>
+      (A.decimal <* A.string "] {") <*>
+      (T.decodeUtf8 <$> A.takeWhile1 (/= '}') <* A.string "} ") <*>
+      textP

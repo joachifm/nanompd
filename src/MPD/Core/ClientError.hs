@@ -17,7 +17,12 @@ import Data.Text (Text)
 
 data ClientError
   = ParseError String
-  | ProtocolError Text
+  | ProtocolError
+    { errorCode :: Int
+    , errorListNum :: Int
+    , errorCommandName :: Text
+    , errorMessage :: Text
+    }
   | InvalidHost
   | ConnError IOError
   | Custom String
