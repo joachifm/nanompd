@@ -27,13 +27,14 @@ import MPD.Commands
 import MPD.Core (
     ClientError(..)
   , Command
+  , Label
+  , PortID(..)
   , run
   , runWith
-  , Label
-  , Text
-  , runEitherT
+
+  , EitherT(..)
   , HostName
-  , PortID(..)
+  , Text
   )
 import Prelude hiding (repeat)
 

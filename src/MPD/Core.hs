@@ -50,7 +50,7 @@ module MPD.Core
   , (<$>)
 
     -- ** From "Control.Monad.Trans.Either"
-  , runEitherT
+  , EitherT(..)
   ) where
 
 import MPD.Core.ClientError
