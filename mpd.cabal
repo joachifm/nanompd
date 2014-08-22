@@ -32,16 +32,16 @@ library
 
   build-depends:
     -- Platform dependencies
-      base > 4 && < 5
-    , attoparsec > 0.10 && < 1
-    , bytestring > 0.10 && < 1
-    , mtl > 2 && < 3
-    , network > 2.4 && < 3
-    , text > 1.1 && < 2
+      base >= 4 && < 5
+    , attoparsec >= 0.10 && < 1
+    , bytestring >= 0.10 && < 1
+    , mtl >= 2 && < 3
+    , network >= 2.4 && < 3
+    , text >= 1.1 && < 2
 
     -- Extra
-    , either > 4.3 && < 5
-    , exceptions > 0.6 && < 1
+    , either >= 4.3 && < 5
+    , exceptions >= 0.6 && < 1
 
   exposed-modules:
       MPD
