@@ -69,7 +69,7 @@ instance CommandArg Range where
   fromArg (Range (a, b)) = fromArg a <> ":" <> fromArg b
 
 data Metadata = Artist | Title
-  deriving (Show)
+  deriving (Eq, Show, Read, Enum)
 
 instance CommandArg Metadata where
   fromArg = T.pack . show
