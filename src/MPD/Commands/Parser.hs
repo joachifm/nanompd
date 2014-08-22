@@ -103,7 +103,7 @@ songInfo = SongInfo <$>
   optional (field "Id" intP)
 
 songTag :: Parser (Label, Text)
-songTag = foldr1 (<|>) $ map (`fieldK` textP) tagTypes
+songTag = foldr1 (<|>) $ map (`pair` textP) tagTypes
 
 tagTypes :: [Label]
 tagTypes = [ "Artist", "Title", "Album" ]

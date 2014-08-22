@@ -51,19 +51,18 @@ module MPD.Core
     -- $parser
   , Parser
   , parse
+  , liftP
 
     -- ** Scalars
-  , textP
-  , readP
   , boolP
-  , intP
   , doubleP
+  , intP
+  , textP
 
     -- ** Objects
   , Label
-  , fieldK
+  , pair
   , field
-  , liftP
 
     -- * Re-exports
 
@@ -82,10 +81,8 @@ module MPD.Core
   , runEitherT
   ) where
 
-import qualified Data.Attoparsec.ByteString as A
-import qualified Data.Attoparsec.ByteString.Char8 as A8
+import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString as SB
-import qualified Data.ByteString.Char8 as SB8
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
@@ -97,7 +94,6 @@ import Control.Monad (MonadPlus(..), ap, unless)
 import Control.Monad.State (State, evalState, get, put)
 import Control.Monad.Trans (MonadIO(..))
 import Data.Functor (void)
-import Data.Maybe (listToMaybe)
 import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import Network (HostName, PortID(..), connectTo)
@@ -199,53 +195,59 @@ instance Alternative Parser where
 parse :: Parser a -> [SB.ByteString] -> Either String a
 parse = evalState . runP
 
+-- Convert value parser into a line parser (i.e., consumes an entire line)
+liftP :: A.Parser a -> Parser a
+liftP p = P $ do
+  st <- get
+  case st of
+   []   -> return (Left "liftP: empty input")
+   l:ls -> case A.parseOnly p l of
+     Left e  -> return (Left $ "liftP: parse value failed: " ++ e)
+     Right x -> put ls >> return (Right x)
+
 -- Value parsers
 
-type Label = SB.ByteString
+boolP :: A.Parser Bool
+boolP = pure True <* A.char '1' <|> pure False <* A.char '0'
+
+doubleP :: A.Parser Double
+doubleP = A.double
+
+intP :: A.Parser Int
+intP = A.decimal
 
 textP :: A.Parser T.Text
 textP = T.decodeUtf8 <$> A.takeByteString
 
-readP :: (Read a) => A.Parser a
-readP = do
-  x <- A.takeByteString
-  case reads (SB8.unpack x) of
-   [(r, "")] -> return r
-   _ -> mzero
-
-boolP :: A.Parser Bool
-boolP = pure True <* A8.char '1' <|> pure False <* A8.char '0'
-
-intP :: A.Parser Int
-intP = A8.decimal
-
-doubleP :: A.Parser Double
-doubleP = A8.double
-
--- Convert value parser into a line parser (i.e., consumes an entire line)
-liftP :: A.Parser a -> Parser a
-liftP p = P $ (maybe (Left "liftP: empty input") (A.parseOnly p) . listToMaybe) <$> get
-
 -- Object parser
 
-fieldK :: Label -> A.Parser a -> Parser (Label, a)
-fieldK k v = P $ do
+type Label = SB.ByteString
+
+pair :: Label -> A.Parser a -> Parser (Label, a)
+pair k p = P $ do
   st <- get
   case st of
-   []   -> return $ Left "field: empty input"
-   ln:ls -> do
-     case pair ln of
-      (k', v')
-        | k' == k -> case A.parseOnly v v' of
-          Right x -> put ls >> return (Right (k, x))
-          Left e   -> return (Left $ "field: parse value failed: " ++ show e)
-        | otherwise -> return (Left $ "field: expected key " ++ show k ++ "; got " ++ show k')
+   l:ls -> case pairBS l of
+     (k', v)
+       | k' == k -> either (return . Left)
+                           (\x -> put ls >> return (Right (k, x)))
+                           (A.parseOnly p v)
+       | otherwise -> return (Left $ "pair: key mismatch: " ++ show k ++ "/" ++ show k')
+   [] -> return (Left $ "pair: empty input")
   where
-    pair s = let (hd, tl) = SB8.break (== ':') s in (hd, SB.drop 2 tl)
+    pairBS x = let (hd, tl) = SB.break (== 58) {- : -} x in (hd, SB.drop 2 tl)
+
+{-
+Note: the above is more elegantly stated as
+
+pairP :: Label -> A.Parser a -> A.Parser (Label, a)
+pairP k v = (,) <$> (A.string k <* A.string ": ") <*> v
+
+which is about 2x as slow ...
+-}
 
 field :: Label -> A.Parser a -> Parser a
-field k v = fmap snd (fieldK k v)
-{-# INLINE field #-}
+field k v = fmap snd (pair k v)
 
 ------------------------------------------------------------------------
 -- $commandStr
