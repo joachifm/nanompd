@@ -28,17 +28,7 @@ module MPD.Core
     run
   , runWith
 
-    -- * Connection primitives
-  , module MPD.Core.Conn
-
-    -- * Command interface
-  , module MPD.Core.Command
-
-    -- * Convenient syntax for protocol command strings
-  , module MPD.Core.CommandStr
-
-  , module MPD.Core.ClientError
-  , module MPD.Core.Parser
+  , module X
 
     -- * Re-exports
 
@@ -53,11 +43,11 @@ module MPD.Core
   , EitherT(..)
   ) where
 
-import MPD.Core.ClientError
-import MPD.Core.Command
-import MPD.Core.CommandStr
-import MPD.Core.Conn
-import MPD.Core.Parser
+import MPD.Core.ClientError as X
+import MPD.Core.Command     as X
+import MPD.Core.CommandStr  as X
+import MPD.Core.Conn        as X
+import MPD.Core.Parser      as X
 
 import Control.Applicative
 import Control.Monad.Trans (MonadIO(..))

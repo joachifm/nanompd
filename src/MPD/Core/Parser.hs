@@ -111,7 +111,7 @@ pair k p = P $ do
                            (\x -> put ls >> return (Right (k, x)))
                            (A.parseOnly p v)
        | otherwise -> return (Left $ "pair: key mismatch: " ++ show k ++ "/" ++ show k')
-   [] -> return (Left $ "pair: empty input")
+   [] -> return (Left "pair: empty input")
   where
     pairBS x = let (hd, tl) = SB.break (== 58) {- : -} x in (hd, SB.drop 2 tl)
 
