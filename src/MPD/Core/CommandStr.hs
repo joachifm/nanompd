@@ -21,7 +21,6 @@ import Data.String (IsString(..))
 import qualified Data.Text as T
 
 data CommandStr = CommandStr [T.Text]
-  deriving (Show)
 
 instance Monoid CommandStr where
   mempty = CommandStr []
