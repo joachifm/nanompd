@@ -98,7 +98,7 @@ open host port = do
   hdl <- connIO (connectTo host port)
   ver <- connIO (SB.hGetLine hdl)
   unless ("OK MPD " `SB.isPrefixOf` ver) $ do
-    close hdl
+    _ <- liftIO (tryIOError $ hClose hdl)
     left InvalidHost
   return (hdl, ver)
 
