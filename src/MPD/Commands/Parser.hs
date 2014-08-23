@@ -69,7 +69,8 @@ lsEntry =
 lsEntryInfo :: Parser LsEntryInfo
 lsEntryInfo =
   LsSongInfo <$> songInfo <|>
-  (LsDirInfo <$> field "directory" pathP <*> field "Last-Modified" dateP) <|>
+  (LsDirInfo <$> field "directory" pathP
+             <*> field "Last-Modified" dateP) <|>
   (LsPlaylistInfo <$> field "playlist" pathP
                   <*> field "Last-Modified" dateP)
 
