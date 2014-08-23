@@ -120,6 +120,14 @@ where @arg1 .. argN@ are instances of 'CommandArg'.
 The library provides 'CommandArg' instances for several standard types,
 as well as instances for '[]', 'Maybe' (optional parameters),
 and 'Either' (choice).
+
+To summarise, adding a new command wrapper follows these steps
+
+* consult the MPD protocol specification and note the command syntax;
+* if necessary, add argument types and 'CommandArg' instances;
+* if necessary, add protocol object types and parsers; and
+* implement the command wrapper using 'CommandStr' to specify
+  the protocol command string and define a parser for the response.
 -}
 
 ------------------------------------------------------------------------
