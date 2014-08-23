@@ -39,6 +39,7 @@ module MPD.Commands.Types (
 
 import MPD.Core
 
+import Control.DeepSeq (NFData(..))
 import Data.Monoid ((<>))
 import Data.String (IsString(..))
 import qualified Data.Text as T
@@ -57,6 +58,9 @@ type Date = Text
 
 newtype Path = Path { unPath :: Text } deriving (Show)
 
+instance NFData Path where
+  rnf (Path x) = rnf x
+
 instance IsString Path where
   fromString = Path . T.pack
 
@@ -64,6 +68,9 @@ instance CommandArg Path where
   fromArg (Path x) = T.concat [ "\"", x, "\"" ]
 
 newtype Range = Range (Int, Int)
+
+instance NFData Range where
+  rnf (Range x) = rnf x
 
 instance CommandArg Range where
   fromArg (Range (a, b)) = fromArg a <> ":" <> fromArg b
@@ -83,11 +90,21 @@ data LsEntry
   | LsPlaylist !Path
     deriving (Show)
 
+instance NFData LsEntry where
+  rnf (LsFile x) = rnf x
+  rnf (LsDir x) = rnf x
+  rnf (LsPlaylist x) = rnf x
+
 data LsEntryInfo
   = LsSongInfo !SongInfo
   | LsDirInfo !Path !Date
   | LsPlaylistInfo !Path !Date
     deriving (Show)
+
+instance NFData LsEntryInfo where
+  rnf (LsSongInfo x) = rnf x
+  rnf (LsDirInfo x y) = rnf x `seq` rnf y
+  rnf (LsPlaylistInfo x y) = rnf x `seq` rnf y
 
 data StatusInfo = StatusInfo
   { statusVolume :: !(Maybe Volume)
@@ -110,6 +127,25 @@ data StatusInfo = StatusInfo
   , statusNextSongId :: !(Maybe SongId)
   } deriving (Show)
 
+instance NFData StatusInfo where
+  rnf x = rnf (statusVolume x) `seq`
+          rnf (statusRepeatEnabled x) `seq`
+          rnf (statusRandomEnabled x) `seq`
+          rnf (statusSingleEnabled x) `seq`
+          rnf (statusConsumeEnabled x) `seq`
+          rnf (statusPlaylistVersion x) `seq`
+          rnf (statusPlaylistLength x) `seq`
+          rnf (statusMixrampDb x) `seq`
+          rnf (statusPlaybackState x) `seq`
+          rnf (statusSongPos x) `seq`
+          rnf (statusSongId x) `seq`
+          rnf (statusTime x) `seq`
+          rnf (statusElapsedTime x) `seq`
+          rnf (statusBitrate x) `seq`
+          rnf (statusAudio x) `seq`
+          rnf (statusNextSongPos x) `seq`
+          rnf (statusNextSongId x)
+
 data SongInfo = SongInfo
   { songFile :: !Path
   , songLastModified :: !Date
@@ -118,6 +154,14 @@ data SongInfo = SongInfo
   , songPos :: !(Maybe SongPos)
   , songId :: !(Maybe SongId)
   } deriving (Show)
+
+instance NFData SongInfo where
+  rnf x = rnf (songFile x) `seq`
+          rnf (songLastModified x) `seq`
+          rnf (songTime x) `seq`
+          rnf (songTags x) `seq`
+          rnf (songPos x) `seq`
+          rnf (songId x)
 
 viewTag :: SongInfo -> Label -> Maybe Text
 viewTag si l = lookup l (songTags si)
