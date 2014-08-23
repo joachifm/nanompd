@@ -21,6 +21,7 @@ with haskellPackages; cabal.mkDerivation (self: rec {
   propagatedBuildDepends = [ cabalInstall ];
   buildDepends = [
     cabalInstall attoparsec either exceptions mtl network text
+    unorderedContainers
   ];
   testDepends = buildDepends ++ [ hspec hspecExpectations ];
   doCheck = true;

@@ -43,6 +43,7 @@ import Control.DeepSeq (NFData(..))
 import Data.Monoid ((<>))
 import Data.String (IsString(..))
 import qualified Data.Text as T
+import qualified Data.HashMap.Strict as M
 
 ------------------------------------------------------------------------
 -- $scalar
@@ -150,7 +151,7 @@ data SongInfo = SongInfo
   { songFile :: !Path
   , songLastModified :: !Date
   , songTime :: !Seconds
-  , songTags :: ![(Label, Text)]
+  , songTags :: !(M.HashMap Label Text)
   , songPos :: !(Maybe SongPos)
   , songId :: !(Maybe SongId)
   } deriving (Show)
@@ -164,4 +165,4 @@ instance NFData SongInfo where
           rnf (songId x)
 
 viewTag :: SongInfo -> Label -> Maybe Text
-viewTag si l = lookup l (songTags si)
+viewTag si l = M.lookup l (songTags si)

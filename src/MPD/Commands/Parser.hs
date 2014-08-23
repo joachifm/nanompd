@@ -36,6 +36,7 @@ import MPD.Commands.Types
 
 import Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A
+import qualified Data.HashMap.Strict as M
 
 ------------------------------------------------------------------------
 -- $scalar
@@ -99,7 +100,7 @@ songInfo = SongInfo <$>
   field "file" pathP <*>
   field "Last-Modified" dateP <*>
   field "Time" intP <*>
-  many songTag <*>
+  (M.fromList <$> many songTag) <*>
   optional (field "Pos" intP) <*>
   optional (field "Id" intP)
 
