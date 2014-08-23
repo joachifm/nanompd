@@ -104,7 +104,7 @@ open host port = do
 
 close :: (MonadIO m) => Handle -> EitherT ClientError m ()
 close hdl = void . liftIO $
-  tryIOError (SB.hPut hdl "close\n" >> hClose hdl)
+  tryIOError (SB.hPut hdl "close\n") >> tryIOError (hClose hdl)
 
 ------------------------------------------------------------------------
 -- Internal helpers
