@@ -78,45 +78,45 @@ instance CommandArg Metadata where
 -- $object
 
 data LsEntry
-  = LsFile Path
-  | LsDir Path
-  | LsPlaylist Path
+  = LsFile !Path
+  | LsDir !Path
+  | LsPlaylist !Path
     deriving (Show)
 
 data LsEntryInfo
-  = LsSongInfo SongInfo
-  | LsDirInfo Path Date
-  | LsPlaylistInfo Path Date
+  = LsSongInfo !SongInfo
+  | LsDirInfo !Path !Date
+  | LsPlaylistInfo !Path !Date
     deriving (Show)
 
 data StatusInfo = StatusInfo
-  { statusVolume :: Maybe Volume
+  { statusVolume :: !(Maybe Volume)
     -- ^ 'Just' the current volume (0-100) or 'Nothing' if missing mixer.
-  , statusRepeatEnabled :: Bool
-  , statusRandomEnabled :: Bool
-  , statusSingleEnabled :: Bool
-  , statusConsumeEnabled :: Bool
-  , statusPlaylistVersion :: Int
-  , statusPlaylistLength :: Int
-  , statusMixrampDb :: Double
-  , statusPlaybackState :: PlaybackState
-  , statusSongPos :: Maybe SongPos
-  , statusSongId :: Maybe SongId
-  , statusTime :: Maybe (Seconds, Seconds)
-  , statusElapsedTime :: Maybe Double
-  , statusBitrate :: Maybe Int
-  , statusAudio :: Maybe (Int, Int, Int)
-  , statusNextSongPos :: Maybe SongPos
-  , statusNextSongId :: Maybe SongId
+  , statusRepeatEnabled :: !Bool
+  , statusRandomEnabled :: !Bool
+  , statusSingleEnabled :: !Bool
+  , statusConsumeEnabled :: !Bool
+  , statusPlaylistVersion :: !Int
+  , statusPlaylistLength :: !Int
+  , statusMixrampDb :: !Double
+  , statusPlaybackState :: !PlaybackState
+  , statusSongPos :: !(Maybe SongPos)
+  , statusSongId :: !(Maybe SongId)
+  , statusTime :: !(Maybe (Seconds, Seconds))
+  , statusElapsedTime :: !(Maybe Double)
+  , statusBitrate :: !(Maybe Int)
+  , statusAudio :: !(Maybe (Int, Int, Int))
+  , statusNextSongPos :: !(Maybe SongPos)
+  , statusNextSongId :: !(Maybe SongId)
   } deriving (Show)
 
 data SongInfo = SongInfo
-  { songFile :: Path
-  , songLastModified :: Date
-  , songTime :: Seconds
-  , songTags :: [(Label, Text)]
-  , songPos :: Maybe SongPos
-  , songId :: Maybe SongId
+  { songFile :: !Path
+  , songLastModified :: !Date
+  , songTime :: !Seconds
+  , songTags :: ![(Label, Text)]
+  , songPos :: !(Maybe SongPos)
+  , songId :: !(Maybe SongId)
   } deriving (Show)
 
 viewTag :: SongInfo -> Label -> Maybe Text
