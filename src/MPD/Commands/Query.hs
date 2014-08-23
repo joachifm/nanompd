@@ -1,4 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE Safe #-}
 
 {-|
@@ -13,7 +14,13 @@ Portability : unportable
 Convenient syntax for database queries.
 -}
 
-module MPD.Commands.Query ( Query, (=?), (<&>), anything ) where
+module MPD.Commands.Query (
+    Query
+  , (=?)
+#ifdef TEST
+  , queryTerms
+#endif
+  ) where
 
 import MPD.Commands.Types
 import MPD.Core (CommandArg(..))
@@ -24,13 +31,14 @@ import qualified Data.Text as T
 A database query consisting of 0 or more terms.
 
 @
-Title =? "FooBar" <&> Artist =? "BarFoo"
+Title =? "FooBar" <> Artist =? "BarFoo"
 @
 
-would match items with title "FooBar" and artist "BarFoo".
+matches items with title "FooBar" and artist "BarFoo".
+
+Use 'mempty' to create a query which matches anything.
 -}
 newtype Query = Query { queryTerms :: [(Metadata, T.Text)] }
-  deriving (Show)
 
 instance Monoid Query where
   mempty = Query []
@@ -42,11 +50,3 @@ instance CommandArg Query where
 
 (=?) :: Metadata -> T.Text -> Query
 m =? s = Query [(m, s)]
-
-infixr 6 <&>
-(<&>) :: Query -> Query -> Query
-(<&>) = mappend
-
--- | The empty query, matches anything.
-anything :: Query
-anything = mempty
