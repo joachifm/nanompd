@@ -45,6 +45,7 @@ module MPD.Core
 
 import MPD.Core.ClientError as X
 import MPD.Core.Command     as X
+import MPD.Core.CommandArg  as X
 import MPD.Core.CommandStr  as X
 import MPD.Core.Conn        as X
 import MPD.Core.Parser      as X
