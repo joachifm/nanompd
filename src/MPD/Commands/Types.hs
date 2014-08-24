@@ -1,4 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Safe #-}
 
@@ -41,6 +42,7 @@ import MPD.Core
 import Control.DeepSeq (NFData(..))
 import Data.Monoid ((<>))
 import Data.String (IsString(..))
+import Data.Data (Data, Typeable)
 import Data.Time.Clock (UTCTime)
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as M
@@ -55,7 +57,7 @@ type SongPos = Int
 type SubsystemName = Text
 type Volume = Int
 
-newtype Path = Path { unPath :: Text } deriving (Show)
+newtype Path = Path { unPath :: Text } deriving (Show, Data, Typeable)
 
 instance NFData Path where
   rnf (Path x) = rnf x
@@ -66,7 +68,7 @@ instance IsString Path where
 instance CommandArg Path where
   fromArg (Path x) = T.concat [ "\"", x, "\"" ]
 
-newtype Range = Range (Int, Int)
+newtype Range = Range (Int, Int) deriving (Show, Data, Typeable)
 
 instance NFData Range where
   rnf (Range x) = rnf x
@@ -75,7 +77,7 @@ instance CommandArg Range where
   fromArg (Range (a, b)) = fromArg a <> ":" <> fromArg b
 
 data Metadata = Artist | Title
-  deriving (Eq, Show, Read, Enum)
+  deriving (Eq, Show, Read, Enum, Data, Typeable)
 
 instance CommandArg Metadata where
   fromArg = T.pack . show
@@ -87,7 +89,7 @@ data LsEntry
   = LsFile !Path
   | LsDir !Path
   | LsPlaylist !Path
-    deriving (Show)
+    deriving (Show, Data, Typeable)
 
 instance NFData LsEntry where
   rnf (LsFile x) = rnf x
@@ -98,7 +100,7 @@ data LsEntryInfo
   = LsSongInfo !SongInfo
   | LsDirInfo !Path !UTCTime
   | LsPlaylistInfo !Path !UTCTime
-    deriving (Show)
+    deriving (Show, Data, Typeable)    
 
 instance NFData LsEntryInfo where
   rnf (LsSongInfo x) = rnf x
@@ -124,7 +126,7 @@ data StatusInfo = StatusInfo
   , statusAudio :: !(Maybe (Int, Int, Int))
   , statusNextSongPos :: !(Maybe SongPos)
   , statusNextSongId :: !(Maybe SongId)
-  } deriving (Show)
+  } deriving (Show, Data, Typeable)
 
 instance NFData StatusInfo where
   rnf x = rnf (statusVolume x) `seq`
@@ -152,7 +154,7 @@ data SongInfo = SongInfo
   , songTags :: !(M.HashMap Label Text)
   , songPos :: !(Maybe SongPos)
   , songId :: !(Maybe SongId)
-  } deriving (Show)
+  } deriving (Show, Data, Typeable)
 
 instance NFData SongInfo where
   rnf x = rnf (songFile x) `seq`
