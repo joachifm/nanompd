@@ -39,6 +39,7 @@ library
     , mtl >= 2 && < 3
     , network >= 2.4 && < 3
     , text >= 1.1 && < 2
+    , time >= 1.4.2 && < 2
     , unordered-containers >= 0.2.4 && < 1
 
     -- Extra
@@ -89,6 +90,7 @@ test-suite specs
     , mtl
     , network
     , text
+    , time
     , unordered-containers
 
     , hspec

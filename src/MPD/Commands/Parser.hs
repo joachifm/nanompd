@@ -1,4 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Trustworthy #-}
 
@@ -29,20 +30,26 @@ module MPD.Commands.Parser (
   , lsEntryInfo
   , songInfo
   , statusInfo
+
+#ifdef TEST
+  , parseIso8601_utc
+#endif
   ) where
 
 import MPD.Core
 import MPD.Commands.Types
 
 import Control.Applicative
+import Data.Time.Calendar (Day, fromGregorian)
+import Data.Time.Clock (UTCTime(..), DiffTime, secondsToDiffTime)
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.HashMap.Strict as M
 
 ------------------------------------------------------------------------
 -- $scalar
 
-dateP :: A.Parser Date
-dateP = textP
+dateP :: A.Parser UTCTime
+dateP = parseIso8601_utc
 
 pathP :: A.Parser Path
 pathP = Path <$> textP
@@ -127,3 +134,23 @@ tagTypes = [
   , "MUSICBRAINZ_ALBUMARTISTID"
   , "MUSICBRAINZ_TRACKID"
   ]
+
+------------------------------------------------------------------------
+-- A specialised ISO 8601 parser for dates in the <date>T<time>Z format,
+-- aka. restricted to UTC times only.
+
+parseIso8601_utc :: A.Parser UTCTime
+parseIso8601_utc = UTCTime <$> parseDay  <* A.char 'T'
+                           <*> parseTime <* A.char 'Z'
+
+parseTime :: A.Parser DiffTime
+parseTime = do
+  hh <- A.decimal <* A.char ':'
+  mm <- A.decimal <* A.char ':'
+  ss <- A.decimal
+  return $! secondsToDiffTime (sum [hh * 3600, mm * 60, ss ])
+
+parseDay :: A.Parser Day
+parseDay = fromGregorian <$> A.decimal <* A.char '-'
+                         <*> A.decimal <* A.char '-'
+                         <*> A.decimal

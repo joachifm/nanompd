@@ -17,8 +17,7 @@ Encodings for MPD protocol objects.
 module MPD.Commands.Types (
     -- * Scalars
     -- $scalar
-    Date
-  , Metadata(..)
+    Metadata(..)
   , PlaybackState
   , Seconds
   , SongId
@@ -42,6 +41,7 @@ import MPD.Core
 import Control.DeepSeq (NFData(..))
 import Data.Monoid ((<>))
 import Data.String (IsString(..))
+import Data.Time.Clock (UTCTime)
 import qualified Data.Text as T
 import qualified Data.HashMap.Strict as M
 
@@ -54,8 +54,6 @@ type SongId = Int
 type SongPos = Int
 type SubsystemName = Text
 type Volume = Int
-
-type Date = Text
 
 newtype Path = Path { unPath :: Text } deriving (Show)
 
@@ -98,8 +96,8 @@ instance NFData LsEntry where
 
 data LsEntryInfo
   = LsSongInfo !SongInfo
-  | LsDirInfo !Path !Date
-  | LsPlaylistInfo !Path !Date
+  | LsDirInfo !Path !UTCTime
+  | LsPlaylistInfo !Path !UTCTime
     deriving (Show)
 
 instance NFData LsEntryInfo where
@@ -149,7 +147,7 @@ instance NFData StatusInfo where
 
 data SongInfo = SongInfo
   { songFile :: !Path
-  , songLastModified :: !Date
+  , songLastModified :: !UTCTime
   , songTime :: !Seconds
   , songTags :: !(M.HashMap Label Text)
   , songPos :: !(Maybe SongPos)

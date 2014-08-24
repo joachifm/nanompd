@@ -4,6 +4,7 @@ module Main (main) where
 
 import MPD
 import MPD.Core
+import MPD.Commands.Parser
 import Criterion.Main
 import qualified Data.Attoparsec.ByteString as A
 
@@ -27,4 +28,7 @@ main = defaultMain [
       whnf (parse ((,,) <$> field "a" boolP
                         <*> field "b" doubleP
                         <*> field "c" intP)) ["a: 1", "b: 2.5", "42"]
+
+  , bench "dateP" $
+      whnf (A.parseOnly dateP) "2014-05-16T17:33:26Z"
   ]
