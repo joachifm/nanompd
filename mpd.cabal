@@ -48,6 +48,10 @@ library
 
   exposed-modules:
       MPD
+    , MPD.Commands
+    , MPD.Commands.Parser
+    , MPD.Commands.Query
+    , MPD.Commands.Types
     , MPD.Core
     , MPD.Core.ClientError
     , MPD.Core.Command
@@ -55,10 +59,6 @@ library
     , MPD.Core.CommandStr
     , MPD.Core.Conn
     , MPD.Core.Parser
-    , MPD.Commands
-    , MPD.Commands.Query
-    , MPD.Commands.Parser
-    , MPD.Commands.Types
 
   other-modules:
 
@@ -67,7 +67,7 @@ library
     -funbox-strict-fields
 
   ghc-prof-options:
-    -auto-all
+    -fprof-auto
 
 test-suite specs
   type: exitcode-stdio-1.0
