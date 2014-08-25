@@ -34,6 +34,7 @@ module MPD.Commands.Types (
   , LsEntryInfo(..)
   , SongInfo(..)
   , StatusInfo(..)
+  , StatsInfo(..)
   , viewTag
   ) where
 
@@ -100,12 +101,31 @@ data LsEntryInfo
   = LsSongInfo !SongInfo
   | LsDirInfo !Path !UTCTime
   | LsPlaylistInfo !Path !UTCTime
-    deriving (Show, Data, Typeable)    
+    deriving (Show, Data, Typeable)
 
 instance NFData LsEntryInfo where
   rnf (LsSongInfo x) = rnf x
   rnf (LsDirInfo x y) = rnf x `seq` rnf y
   rnf (LsPlaylistInfo x y) = rnf x `seq` rnf y
+
+data StatsInfo = StatsInfo
+  { statsArtists :: !Int
+  , statsAlbums :: !Int
+  , statsSongs :: !Int
+  , statsUptime :: !Int
+  , statsDbPlaytime :: !Int
+  , statsDbUpdate :: !Int
+  , statsPlaytime :: !Int
+  } deriving (Show, Data, Typeable)
+
+instance NFData StatsInfo where
+  rnf x = rnf (statsArtists x) `seq`
+          rnf (statsAlbums x) `seq`
+          rnf (statsSongs x) `seq`
+          rnf (statsUptime x) `seq`
+          rnf (statsDbPlaytime x) `seq`
+          rnf (statsDbUpdate x) `seq`
+          rnf (statsPlaytime x)
 
 data StatusInfo = StatusInfo
   { statusVolume :: !(Maybe Volume)

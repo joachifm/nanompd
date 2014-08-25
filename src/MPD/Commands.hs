@@ -61,6 +61,7 @@ module MPD.Commands
   , idle
   , noidle
   , status
+  , stats
 
   , module MPD.Commands.Query
   , module MPD.Commands.Types
@@ -215,6 +216,10 @@ noidle = command "noidle" (return ())
 -- | Daemon status information.
 status :: Command StatusInfo
 status = command "status" statusInfo
+
+-- | Daemon statistics.
+stats :: Command StatsInfo
+stats = command "stats" statsInfo
 
 ------------------------------------------------------------------------
 -- Stored playlists

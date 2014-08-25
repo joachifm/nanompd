@@ -30,6 +30,7 @@ module MPD.Commands.Parser (
   , lsEntryInfo
   , songInfo
   , statusInfo
+  , statsInfo
 
 #ifdef TEST
   , parseIso8601_utc
@@ -101,6 +102,16 @@ statusInfo = StatusInfo <$>
   optional (field "audio" audioP) <*>
   optional (field "nextsong" intP) <*>
   optional (field "nextsongid" intP)
+
+statsInfo :: Parser StatsInfo
+statsInfo = StatsInfo <$>
+  field "uptime" intP <*>
+  field "playtime" intP <*>
+  field "artists" intP <*>
+  field "albums" intP <*>
+  field "songs" intP <*>
+  field "db_playtime" intP <*>
+  field "db_update" intP
 
 songInfo :: Parser SongInfo
 songInfo = SongInfo <$>
