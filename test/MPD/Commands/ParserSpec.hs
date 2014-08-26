@@ -7,10 +7,15 @@ import MPD.Core
 import MPD.Commands.Parser
 
 import Control.Applicative
-import qualified Data.Attoparsec.ByteString as A
 import Data.Monoid (mconcat, (<>))
+
+import qualified Data.Attoparsec.ByteString as A
+import qualified Data.ByteString.Char8 as SB8
+
 import Test.Hspec
 import Test.Hspec.Expectations.Contrib
+import Test.Hspec.QuickCheck (prop)
+import Test.QuickCheck
 
 ------------------------------------------------------------------------
 -- Main specification.
@@ -22,9 +27,9 @@ spec = do
     A.parseOnly dateP "2014-05-16T17:33:26Z"
     `shouldSatisfy` isRight
 
-  it "volumeP" $
-    A.parseOnly volumeP "100"
-    `shouldSatisfy` isRight
+  let volumeGen = suchThat arbitrary (\x -> x >= 0 && x <= 100)
+  prop "volumeP" $ forAll volumeGen $ \x ->
+    A.parseOnly volumeP (SB8.pack $ show x) `shouldBe` Right (Just x)
 
   it "pathP" $
     A.parseOnly pathP "foo/bar.mp3"

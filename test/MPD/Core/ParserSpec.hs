@@ -4,25 +4,28 @@
 module MPD.Core.ParserSpec (spec) where
 
 import MPD.Core
+
+import qualified Data.ByteString.Char8 as SB8
+
 import Test.Hspec
 import Test.Hspec.Expectations.Contrib
+import Test.Hspec.QuickCheck (prop)
+import Test.QuickCheck
 
 spec :: Spec
 spec = do
-  it "boolP/true" $ do
-    liftP boolP `shouldAccept` [ "1" ]
 
-  it "boolP/false" $ do
-    liftP boolP `shouldAccept` [ "0" ]
+  prop "boolP" $ forAll (elements ([0, 1]::[Int])) $ \x ->
+    liftP boolP `shouldAccept` [ SB8.pack (show x) ]
 
-  it "doubleP" $ do
-    liftP doubleP `shouldAccept` [ "2.5" ]
+  prop "doubleP" $ forAll (arbitrary :: Gen Double) $ \x ->
+    liftP doubleP `shouldAccept` [ SB8.pack (show x) ]
 
-  it "intP" $ do
-    liftP intP `shouldAccept` [ "1337" ]
+  prop "intP" $ forAll (suchThat arbitrary (>= 0)) $ \x -> do
+    liftP intP `shouldAccept` [ SB8.pack (show (x::Int)) ]
 
-  it "textP" $ do
-    liftP textP `shouldAccept` [ "foo" ]
+  prop "textP" $ forAll (SB8.pack <$> listOf arbitrary) $ \x -> do
+    liftP textP `shouldAccept` [ x ]
 
   it "field/single" $ do
     field "foo" intP `shouldAccept` [ "foo: 1337" ]

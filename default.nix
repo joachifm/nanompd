@@ -23,6 +23,6 @@ with haskellPackages; cabal.mkDerivation (self: rec {
     cabalInstall attoparsec either exceptions mtl network text
     unorderedContainers
   ];
-  testDepends = buildDepends ++ [ hspec hspecExpectations ];
+  testDepends = buildDepends ++ [ hspec hspecExpectations QuickCheck ];
   doCheck = true;
 })
