@@ -136,11 +136,11 @@ lsInfo mbPath = command ("lsinfo" .+ mbPath) (many lsEntryInfo)
 
 -- | Initiate rescan, optionally at given path.
 rescan :: Maybe Path -> Command Int
-rescan mbPath = command ("rescan" .+ mbPath) (liftP intP)
+rescan mbPath = command ("rescan" .+ mbPath) (field "updating_db" intP)
 
 -- | Initiate update, optionally at given path.
 update :: Maybe Path -> Command Int
-update mbPath = command ("update" .+ mbPath) (liftP intP)
+update mbPath = command ("update" .+ mbPath) (field "updating_db" intP)
 
 ------------------------------------------------------------------------
 -- Playback control
