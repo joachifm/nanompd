@@ -18,7 +18,8 @@ Encodings for MPD protocol objects.
 module MPD.Commands.Types (
     -- * Scalars
     -- $scalar
-    Metadata(..)
+    Decibel
+  , Metadata(..)
   , PlaybackState
   , Seconds
   , SongId
@@ -51,6 +52,7 @@ import qualified Data.HashMap.Strict as M
 ------------------------------------------------------------------------
 -- $scalar
 
+type Decibel = Double
 type PlaybackState = Text
 type Seconds = Int
 type SongId = Int
@@ -136,7 +138,7 @@ data StatusInfo = StatusInfo
   , statusConsumeEnabled :: !Bool
   , statusPlaylistVersion :: !Int
   , statusPlaylistLength :: !Int
-  , statusMixrampDb :: !Double
+  , statusMixrampDb :: !Decibel
   , statusPlaybackState :: !PlaybackState
   , statusSongPos :: !(Maybe SongPos)
   , statusSongId :: !(Maybe SongId)
