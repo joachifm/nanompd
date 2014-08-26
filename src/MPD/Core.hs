@@ -28,9 +28,13 @@ module MPD.Core
     run
   , runWith
 
-  , module X
-
     -- * Re-exports
+  , module MPD.Core.ClientError
+  , module MPD.Core.Command
+  , module MPD.Core.CommandArg
+  , module MPD.Core.CommandStr
+  , module MPD.Core.Conn
+  , module MPD.Core.Parser
 
     -- ** From "Data.Text"
   , T.Text
@@ -43,12 +47,12 @@ module MPD.Core
   , EitherT(..)
   ) where
 
-import MPD.Core.ClientError as X
-import MPD.Core.Command     as X
-import MPD.Core.CommandArg  as X
-import MPD.Core.CommandStr  as X
-import MPD.Core.Conn        as X
-import MPD.Core.Parser      as X
+import MPD.Core.ClientError
+import MPD.Core.Command
+import MPD.Core.CommandArg
+import MPD.Core.CommandStr
+import MPD.Core.Conn
+import MPD.Core.Parser
 
 import Control.Applicative
 import Control.Monad.Trans (MonadIO(..))
