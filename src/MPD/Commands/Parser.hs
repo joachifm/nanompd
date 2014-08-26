@@ -155,11 +155,11 @@ parseIso8601_utc = UTCTime <$> parseDay  <* A.char 'T'
                            <*> parseTime <* A.char 'Z'
 
 parseTime :: A.Parser DiffTime
-parseTime = do
-  hh <- A.decimal <* A.char ':'
-  mm <- A.decimal <* A.char ':'
-  ss <- A.decimal
-  return $! secondsToDiffTime (sum [hh * 3600, mm * 60, ss ])
+parseTime = secondsToDiffTime . sum <$> sequence [
+    (* 3600) <$> A.decimal <* A.char ':'
+  , (*   60) <$> A.decimal <* A.char ':'
+  , A.decimal
+  ]
 
 parseDay :: A.Parser Day
 parseDay = fromGregorian <$> A.decimal <* A.char '-'
