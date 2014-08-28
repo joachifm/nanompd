@@ -30,8 +30,8 @@ module MPD.Core.Parser
     -- * Objects
     -- $object
   , Label
-  , pair
   , field
+  , field_
   ) where
 
 import Control.Applicative
@@ -101,8 +101,8 @@ textP = T.decodeUtf8 <$> A.takeByteString
 
 type Label = SB.ByteString
 
-pair :: Label -> A.Parser a -> Parser (Label, a)
-pair k p = P $ do
+field :: Label -> A.Parser a -> Parser (Label, a)
+field k p = P $ do
   st <- get
   case st of
    l:ls -> case pairBS l of
@@ -110,19 +110,19 @@ pair k p = P $ do
        | k' == k -> either (return . Left)
                            (\x -> put ls >> return (Right (k, x)))
                            (A.parseOnly p v)
-       | otherwise -> return (Left $ "pair: key mismatch: " ++ show k ++ "/" ++ show k')
-   [] -> return (Left "pair: empty input")
+       | otherwise -> return (Left $ "field: key mismatch: " ++ show k ++ "/" ++ show k')
+   [] -> return (Left "field: empty input")
   where
     pairBS x = let (hd, tl) = SB.break (== 58) {- : -} x in (hd, SB.drop 2 tl)
 
 {-
 Note: the above is more elegantly stated as
 
-pairP :: Label -> A.Parser a -> A.Parser (Label, a)
-pairP k v = (,) <$> (A.string k <* A.string ": ") <*> v
+fieldP :: Label -> A.Parser a -> A.Parser (Label, a)
+fieldP k v = (,) <$> (A.string k <* A.string ": ") <*> v
 
 which is about 2x as slow ...
 -}
 
-field :: Label -> A.Parser a -> Parser a
-field k v = fmap snd (pair k v)
+field_ :: Label -> A.Parser a -> Parser a
+field_ k v = fmap snd (field k v)

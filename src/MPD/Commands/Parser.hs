@@ -71,59 +71,59 @@ audioP = (,,) <$> A.decimal <* A.char ':'
 
 lsEntry :: Parser LsEntry
 lsEntry =
-  LsFile <$> field "file" pathP <|>
-  LsDir <$> field "directory" pathP <|>
-  LsPlaylist <$> field "playlist" pathP
+  LsFile <$> field_ "file" pathP <|>
+  LsDir <$> field_ "directory" pathP <|>
+  LsPlaylist <$> field_ "playlist" pathP
 
 lsEntryInfo :: Parser LsEntryInfo
 lsEntryInfo =
   LsSongInfo <$> songInfo <|>
-  (LsDirInfo <$> field "directory" pathP
-             <*> field "Last-Modified" dateP) <|>
-  (LsPlaylistInfo <$> field "playlist" pathP
-                  <*> field "Last-Modified" dateP)
+  (LsDirInfo <$> field_ "directory" pathP
+             <*> field_ "Last-Modified" dateP) <|>
+  (LsPlaylistInfo <$> field_ "playlist" pathP
+                  <*> field_ "Last-Modified" dateP)
 
 statusInfo :: Parser StatusInfo
 statusInfo = StatusInfo <$>
-  field "volume" volumeP <*>
-  field "repeat" boolP <*>
-  field "random" boolP <*>
-  field "single" boolP <*>
-  field "consume" boolP <*>
-  field "playlist" intP <*>
-  field "playlistlength" intP <*>
-  field "mixrampdb" doubleP <*>
-  field "state" textP <*>
-  optional (field "song" intP) <*>
-  optional (field "songid" intP) <*>
-  optional (field "time" timeElapsedP) <*>
-  optional (field "elapsed" doubleP) <*>
-  optional (field "bitrate" intP) <*>
-  optional (field "audio" audioP) <*>
-  optional (field "nextsong" intP) <*>
-  optional (field "nextsongid" intP)
+  field_ "volume" volumeP <*>
+  field_ "repeat" boolP <*>
+  field_ "random" boolP <*>
+  field_ "single" boolP <*>
+  field_ "consume" boolP <*>
+  field_ "playlist" intP <*>
+  field_ "playlistlength" intP <*>
+  field_ "mixrampdb" doubleP <*>
+  field_ "state" textP <*>
+  optional (field_ "song" intP) <*>
+  optional (field_ "songid" intP) <*>
+  optional (field_ "time" timeElapsedP) <*>
+  optional (field_ "elapsed" doubleP) <*>
+  optional (field_ "bitrate" intP) <*>
+  optional (field_ "audio" audioP) <*>
+  optional (field_ "nextsong" intP) <*>
+  optional (field_ "nextsongid" intP)
 
 statsInfo :: Parser StatsInfo
 statsInfo = StatsInfo <$>
-  field "uptime" intP <*>
-  field "playtime" intP <*>
-  field "artists" intP <*>
-  field "albums" intP <*>
-  field "songs" intP <*>
-  field "db_playtime" intP <*>
-  field "db_update" intP
+  field_ "uptime" intP <*>
+  field_ "playtime" intP <*>
+  field_ "artists" intP <*>
+  field_ "albums" intP <*>
+  field_ "songs" intP <*>
+  field_ "db_playtime" intP <*>
+  field_ "db_update" intP
 
 songInfo :: Parser SongInfo
 songInfo = SongInfo <$>
-  field "file" pathP <*>
-  field "Last-Modified" dateP <*>
-  field "Time" intP <*>
+  field_ "file" pathP <*>
+  field_ "Last-Modified" dateP <*>
+  field_ "Time" intP <*>
   (M.fromList <$> many songTag) <*>
-  optional (field "Pos" intP) <*>
-  optional (field "Id" intP)
+  optional (field_ "Pos" intP) <*>
+  optional (field_ "Id" intP)
 
 songTag :: Parser (Label, Text)
-songTag = foldr1 (<|>) $ map (`pair` textP) tagTypes
+songTag = foldr1 (<|>) $ map (`field` textP) tagTypes
 
 tagTypes :: [Label]
 tagTypes = [

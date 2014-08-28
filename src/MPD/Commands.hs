@@ -109,7 +109,7 @@ playlistInfo = command "playlistinfo" (many songInfo)
 plChangesPosId :: Int -> Command [(Text, Text)]
 plChangesPosId v = command ("plchangesposid" .+ v) (many p)
   where
-    p = (,) <$> field "cpos" textP <*> field "id" textP
+    p = (,) <$> field_ "cpos" textP <*> field_ "id" textP
 
 -- | Shuffle current playlist.
 shuffle :: Maybe Range -> Command ()
@@ -136,11 +136,11 @@ lsInfo mbPath = command ("lsinfo" .+ mbPath) (many lsEntryInfo)
 
 -- | Initiate rescan, optionally at given path.
 rescan :: Maybe Path -> Command Int
-rescan mbPath = command ("rescan" .+ mbPath) (field "updating_db" intP)
+rescan mbPath = command ("rescan" .+ mbPath) (field_ "updating_db" intP)
 
 -- | Initiate update, optionally at given path.
 update :: Maybe Path -> Command Int
-update mbPath = command ("update" .+ mbPath) (field "updating_db" intP)
+update mbPath = command ("update" .+ mbPath) (field_ "updating_db" intP)
 
 ------------------------------------------------------------------------
 -- Playback control
@@ -205,9 +205,7 @@ currentSong = command "currentsong" (optional songInfo)
 
 -- | Wait for changes in any of the given subsystems.
 idle :: [SubsystemName] -> Command [SubsystemName]
-idle ss = command ("idle" .+ ss) (many p)
-  where
-    p = field "changed" textP
+idle ss = command ("idle" .+ ss) (many (field_ "changed" textP))
 
 -- | Cancel 'idle'.
 noidle :: Command ()

@@ -103,10 +103,10 @@ Currently, left-overs are silently discarded, though you could define a
 parser whose only job is to fail if there is any input left to consume.
 
 Protocol objects are @key\/value@ pairs and are parsed into a corresponding
-record structure using 'field', as in
+record structure using 'field_', as in
 
 @
-fooParser = (,) <\$\> field "key" valueParser <\*\> field "key" valueParser
+fooParser = (,) <\$\> field_ "key" valueParser <\*\> field_ "key" valueParser
 @
 
 Typically, each protocol object will have a corresponding record structure
