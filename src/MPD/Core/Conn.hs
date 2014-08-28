@@ -54,7 +54,7 @@ getResponse
   -> EitherT ClientError m a
 getResponse hdl q p = do
   send hdl q
-  either (left . ParseError) right =<< (parse p `fmap` recv hdl)
+  either (left . ParseError) right =<< parse p <$> recv hdl
 
 send :: (MonadIO m) => Handle -> [CommandStr] -> EitherT ClientError m ()
 send hdl = connIO . SB.hPut hdl . pack
