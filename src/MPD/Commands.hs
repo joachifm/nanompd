@@ -34,6 +34,7 @@ module MPD.Commands
   , playId
   , previous
   , seekId
+  , seek
   , stop
 
     -- * Playback options
@@ -166,6 +167,10 @@ playId sid = command ("playid" .+ sid) (return ())
 -- | Previous playlist item.
 previous :: Command ()
 previous = command "previous" (return ())
+
+-- | Seek by song position.
+seek :: SongPos -> Seconds -> Command ()
+seek pos dest = command ("seek" .+ pos .+ dest) (return ())
 
 -- | Seek by song id.
 seekId :: SongId -> Seconds -> Command ()
