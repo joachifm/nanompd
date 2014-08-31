@@ -23,23 +23,20 @@ module MPD.Core
     -- * Extending
     -- $extending
 
-    -- * Re-exports
+    -- * Client errors
     module MPD.Core.ClientError
+
+    -- * Defining MPD protocol command wrappers
   , module MPD.Core.Command
   , module MPD.Core.CommandArg
   , module MPD.Core.CommandStr
-  , module MPD.Core.Conn
   , module MPD.Core.Parser
 
-    -- ** From "Data.Text"
-  , T.Text
+    -- * Executing MPD protocol command wrappers
+  , module MPD.Core.Run
 
-    -- ** From "Control.Applicative"
-  , Applicative(..)
-  , (<$>)
-
-    -- ** From "Control.Monad.Trans.Either"
-  , EitherT(..)
+    -- * Connection primitives
+  , module MPD.Core.Conn
   ) where
 
 import MPD.Core.ClientError
@@ -48,12 +45,7 @@ import MPD.Core.CommandArg
 import MPD.Core.CommandStr
 import MPD.Core.Conn
 import MPD.Core.Parser
-
-import Control.Applicative
-import Control.Monad.Trans (MonadIO(..))
-import Control.Monad.Trans.Either (EitherT(..))
-import qualified Control.Monad.Catch as C
-import qualified Data.Text as T
+import MPD.Core.Run
 
 {-$overview
 The client API is structured around the 'Command' type, which

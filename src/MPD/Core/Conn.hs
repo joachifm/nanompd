@@ -15,12 +15,6 @@ Portability : unportable
 module MPD.Core.Conn
   ( getResponse
   , withConn
-
-    -- * Re-exports
-
-    -- ** From "Network"
-  , HostName
-  , PortID(..)
   ) where
 
 import MPD.Core.ClientError

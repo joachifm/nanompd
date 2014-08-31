@@ -14,21 +14,15 @@ Portability : unportable
 
 module MPD.Core.Parser
   (
-    -- * Line-oriented response parser
-    -- $parser
     Parser(..)
   , parse
   , liftP
 
-    -- * Scalars
-    -- $scalar
   , boolP
   , intP
   , doubleP
   , textP
 
-    -- * Objects
-    -- $object
   , Label
   , field
   , field_
@@ -37,6 +31,7 @@ module MPD.Core.Parser
 import Control.Applicative
 import Control.Monad (MonadPlus(..), ap)
 import Control.Monad.State (State, evalState, get, put)
+
 import Data.Monoid (Monoid(..))
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString as SB
