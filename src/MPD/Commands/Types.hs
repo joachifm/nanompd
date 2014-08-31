@@ -79,8 +79,25 @@ instance NFData Range where
 instance CommandArg Range where
   fromArg (Range (a, b)) = fromArg a <> ":" <> fromArg b
 
-data Metadata = Artist | Title
-  deriving (Eq, Show, Read, Enum, Data, Typeable)
+data Metadata
+  = Artist
+  | ArtistSort
+  | Album
+  | AlbumArtist
+  | AlbumArtistSort
+  | Title
+  | Track
+  | Name
+  | Genre
+  | Date
+  | Composer
+  | Performer
+  | Disc
+  | MUSICBRAINZ_ARTISTID
+  | MUSICBRAINZ_ALBUMID
+  | MUSICBRAINZ_ALBUMARTISTID
+  | MUSICBRAINZ_TRACKID
+    deriving (Eq, Show, Read, Enum, Data, Typeable)
 
 instance CommandArg Metadata where
   fromArg = T.pack . show
