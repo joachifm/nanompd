@@ -41,9 +41,11 @@ import MPD.Core
 import MPD.Commands.Types
 
 import Control.Applicative
+import qualified Data.Attoparsec.ByteString.Char8 as A
+
+import Data.Text (Text)
 import Data.Time.Calendar (Day, fromGregorian)
 import Data.Time.Clock (UTCTime(..), DiffTime, secondsToDiffTime)
-import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.HashMap.Strict as M
 
 ------------------------------------------------------------------------

@@ -46,7 +46,7 @@ import Data.Monoid ((<>))
 import Data.String (IsString(..))
 import Data.Data (Data, Typeable)
 import Data.Time.Clock (UTCTime)
-import qualified Data.Text as T
+import Data.Text (Text)
 import qualified Data.HashMap.Strict as M
 
 ------------------------------------------------------------------------
@@ -66,10 +66,10 @@ instance NFData Path where
   rnf (Path x) = rnf x
 
 instance IsString Path where
-  fromString = Path . T.pack
+  fromString = Path . fromString
 
 instance CommandArg Path where
-  fromArg (Path x) = T.concat [ "\"", x, "\"" ]
+  fromArg (Path x) = "\"" <> x <> "\""
 
 newtype Range = Range (Int, Int) deriving (Show, Data, Typeable)
 
@@ -100,7 +100,7 @@ data Metadata
     deriving (Eq, Show, Read, Enum, Data, Typeable)
 
 instance CommandArg Metadata where
-  fromArg = T.pack . show
+  fromArg = fromString . show
 
 ------------------------------------------------------------------------
 -- $object

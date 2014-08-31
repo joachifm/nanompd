@@ -5,6 +5,7 @@ module MPD.Core.ParserSpec (spec) where
 
 import MPD.Core
 
+import Control.Applicative
 import qualified Data.ByteString.Char8 as SB8
 
 import Test.Hspec

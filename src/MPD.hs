@@ -28,13 +28,8 @@ import MPD.Core (
     ClientError(..)
   , Command
   , Label
-  , PortID(..)
   , run
   , runWith
-
-  , EitherT(..)
-  , HostName
-  , Text
   )
 import Prelude hiding (repeat)
 

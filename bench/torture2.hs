@@ -6,9 +6,10 @@ number of times against a running MPD instance.
 module Main (main) where
 
 import MPD
-import MPD.Core
 
+import Control.Applicative
 import Control.Monad (replicateM_, void)
+import Control.Monad.Trans.Either (runEitherT)
 
 main :: IO ()
 main = void $ replicateM_ 100 $ do

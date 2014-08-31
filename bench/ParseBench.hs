@@ -5,8 +5,11 @@ module Main (main) where
 import MPD
 import MPD.Core
 import MPD.Commands.Parser
-import Criterion.Main
+
+import Control.Applicative
 import qualified Data.Attoparsec.ByteString as A
+
+import Criterion.Main
 
 main = defaultMain [
     bench "boolP" $
