@@ -23,13 +23,8 @@ module MPD.Core
     -- * Extending
     -- $extending
 
-    -- * Running commands
-    -- $run
-    run
-  , runWith
-
     -- * Re-exports
-  , module MPD.Core.ClientError
+    module MPD.Core.ClientError
   , module MPD.Core.Command
   , module MPD.Core.CommandArg
   , module MPD.Core.CommandStr
@@ -133,21 +128,3 @@ To summarise, adding a new command wrapper follows these steps
 * implement the command wrapper using 'CommandStr' to specify
   the protocol command string and define a parser for the response.
 -}
-
-------------------------------------------------------------------------
--- $run  
-
-runWith
-  :: (C.MonadMask m, MonadIO m)
-  => HostName
-  -> PortID
-  -> Command a
-  -> EitherT ClientError m a
-runWith host port cmd = withConn host port $ \hdl ->
-  getResponse hdl (commandReq cmd) (commandRes cmd)
-
-run
-  :: (C.MonadMask m, MonadIO m)
-  => Command a
-  -> EitherT ClientError m a
-run = runWith "localhost" (PortNumber 6600)
