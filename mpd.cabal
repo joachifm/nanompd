@@ -50,17 +50,18 @@ library
       MPD
     , MPD.Commands
     , MPD.Commands.Parser
-    , MPD.Commands.Query
     , MPD.Commands.Types
     , MPD.Core
+
+  other-modules:
+      MPD.Commands.Query
     , MPD.Core.ClientError
     , MPD.Core.Command
     , MPD.Core.CommandArg
     , MPD.Core.CommandStr
     , MPD.Core.Conn
     , MPD.Core.Parser
-
-  other-modules:
+    , MPD.Core.Run
 
   ghc-options:
     -Wall
