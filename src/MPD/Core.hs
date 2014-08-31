@@ -59,7 +59,7 @@ than by combining those already provided.
 
 Command wrappers are turned into client actions (computations
 against a running server) with 'run'.
-All MPD client actions are executed within a @EitherT ClientError@ monad,
+All MPD client actions are executed within a @'EitherT' 'ClientError'@ monad,
 use 'runEitherT' to unwrap the result.
 Currently, all 'Command's executed by 'run' acquire a separate connection
 to the MPD server.
@@ -93,7 +93,7 @@ Protocol objects are @key\/value@ pairs and are parsed into a corresponding
 record structure using 'field_', as in
 
 @
-fooParser = (,) <\$\> field_ "key" valueParser <\*\> field_ "key" valueParser
+fooParser = (,) <\$\> 'field_' "key" valueParser <\*\> 'field_' "key" valueParser
 @
 
 Typically, each protocol object will have a corresponding record structure
