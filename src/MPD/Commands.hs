@@ -33,6 +33,7 @@ module MPD.Commands
   , play
   , playId
   , previous
+  , seekCur
   , seekId
   , seek
   , stop
@@ -171,6 +172,10 @@ previous = command "previous" (return ())
 -- | Seek by song position.
 seek :: SongPos -> Seconds -> Command ()
 seek pos dest = command ("seek" .+ pos .+ dest) (return ())
+
+-- | Seek in current song.
+seekCur :: Seconds -> Command ()
+seekCur dest = command ("seekcur" .+ dest) (return ())
 
 -- | Seek by song id.
 seekId :: SongId -> Seconds -> Command ()
