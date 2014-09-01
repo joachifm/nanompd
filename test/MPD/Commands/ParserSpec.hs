@@ -7,10 +7,10 @@ import MPD.Core
 import MPD.Commands.Parser
 
 import Control.Applicative
-import Data.Monoid (mconcat, (<>))
-
 import qualified Data.Attoparsec.ByteString as A
-import qualified Data.ByteString.Char8 as SB8
+
+import Data.Monoid (mconcat, (<>))
+import Data.String (fromString)
 
 import Test.Hspec
 import Test.Hspec.Expectations.Contrib
@@ -23,72 +23,87 @@ import Test.QuickCheck
 spec :: Spec
 spec = do
 
-  it "dateP" $
-    A.parseOnly dateP "2014-05-16T17:33:26Z"
-    `shouldSatisfy` isRight
+  prop "dateP" $ forAll dateGen $ \x ->
+    A.parseOnly dateP x `shouldSatisfy` isRight
 
   let volumeGen = suchThat arbitrary (\x -> x >= 0 && x <= 100)
   prop "volumeP" $ forAll volumeGen $ \x ->
-    A.parseOnly volumeP (SB8.pack $ show x) `shouldBe` Right (Just x)
+    A.parseOnly volumeP (fromString $ show x) `shouldBe` Right (Just x)
 
   it "pathP" $
     A.parseOnly pathP "foo/bar.mp3"
     `shouldSatisfy` isRight
 
-  it "timeElapsedP" $
-    A.parseOnly timeElapsedP "10:120"
-    `shouldSatisfy` isRight
+  let positive = suchThat arbitrary (\x -> x >= 0)
+      timeG = (,) <$> positive <*> positive
+  prop "timeElapsedP" $ forAll timeG $ \(x, y) ->
+    A.parseOnly timeElapsedP (mconcat [ fromString (show x), ":"
+                                      , fromString (show y) ])
+    `shouldBe` Right (x, y)
 
-  it "audioP" $
-    A.parseOnly audioP "4800:2:24"
-    `shouldSatisfy` isRight
+  let audioG = (,,) <$> positive <*> positive <*> positive
+  prop "audioP" $ forAll audioG $ \(x, y, z) ->
+    A.parseOnly audioP (mconcat [ fromString (show x), ":"
+                                , fromString (show y), ":"
+                                , fromString (show z) ])
+    `shouldBe` Right (x, y, z)
 
-  it "songInfo 1" $
-    songInfo `shouldAccept` songInfo1
+  prop "songInfo/singleton" $ forAll songInfoGen $ \x ->
+    songInfo `shouldAccept` x
 
-  it "songInfo 2" $
-    songInfo `shouldAccept` songInfo2
+  prop "songInfo/many" $ forAll (listOf songInfoGen) $ \x ->
+    many songInfo `shouldAccept` (mconcat x)
 
-  it "songInfo 3" $
-    songInfo `shouldAccept` songInfo3
+------------------------------------------------------------------------
+-- Generate input
 
-  it "songInfo 4" $
-    songInfo `shouldAccept` songInfo4
+dateGen = do
+  (year, month, day) <- (,,) <$> digits 4 <*> digits 2 <*> digits 2
+  (hours, mins, secs) <- (,,) <$> digits 2 <*> digits 2 <*> digits 2
+  return (mconcat [ year, "-", month, "-", day, "T"
+                  , hours, ":", mins, ":", secs, "Z" ])
 
-  it "songInfo 1 + 2 + 3 + 4" $
-    many songInfo
-    `shouldAccept` mconcat [ songInfo1, songInfo2, songInfo3, songInfo4 ]
+songInfoGen = do
+  fileName <- fromString <$> arbitrary
+  lastModified <- dateGen
+  time <- digits 4
+
+  playing <- arbitrary
+  pos <- if playing
+         then Just <$> digits 4
+         else return Nothing
+  id_ <- if playing
+         then Just <$> digits 4
+         else return Nothing
+
+  tags <- listOf $ do
+    (k, g) <- elements tag
+    v <- g
+    return (k <> ": " <> v)
+
+  return $ [ "file: " <> fileName
+           , "Last-Modified: " <> lastModified
+           , "Time: " <> time
+           ]
+           ++ maybe [] (\x -> ["Pos: " <> x]) pos
+           ++ maybe [] (\x -> ["Id: " <> x]) id_
+           ++ tags
+  where
+    tag  = [ ("Artist",      fromString <$> arbitrary)
+           , ("AlbumArtist", fromString <$> arbitrary)
+           , ("Title",       fromString <$> arbitrary)
+           , ("Album",       fromString <$> arbitrary)
+           , ("Track", do
+                 a <- digits 2
+                 b <- digits 2
+                 return (a <> "/" <> b))
+           , ("Date", digits 4)
+           , ("Genre", fromString <$> arbitrary)
+           ]
 
 ------------------------------------------------------------------------
 -- Internal helpers.
 
 p `shouldAccept` i = parse p i `shouldSatisfy` isRight
 
-------------------------------------------------------------------------
--- Example data
-
-songInfo1 = [
-    "file: foo.mp3"
-  , "Last-Modified: 2014-05-16T17:33:26Z"
-  , "Time: 320"
-  ]
-
-songInfo2 = songInfo1 <> [
-    "Pos: 0"
-  , "Id: 0"
-  ]
-
-songInfo3 = songInfo1 <> [
-    "Artist: FooArtist"
-  , "AlbumArtist: FooArtist"
-  , "Title: FooTitle"
-  , "Album: FooAlbum"
-  , "Track: 04/11"
-  , "Date: 1998"
-  , "Genre: Electronic"
-  ]
-
-songInfo4 = songInfo3 <> [
-    "Pos: 0"
-  , "Id: 0"
-  ]
+digits n = fromString <$> vectorOf n (elements ['0'..'9'])
