@@ -24,7 +24,7 @@ module MPD.Commands.Types (
   , Seconds
   , SongId
   , SongPos
-  , SubsystemName
+  , SubsystemName(..)
   , Volume
   , Path(..)
   , Range
@@ -42,6 +42,7 @@ module MPD.Commands.Types (
 import MPD.Core
 
 import Control.DeepSeq (NFData(..))
+import Data.Maybe (fromJust)
 import Data.Monoid ((<>))
 import Data.String (IsString(..))
 import Data.Data (Data, Typeable)
@@ -56,7 +57,6 @@ type Decibel = Double
 type Seconds = Int
 type SongId = Int
 type SongPos = Int
-type SubsystemName = Text
 type Volume = Int
 
 newtype Path = Path { unPath :: Text } deriving (Show, Data, Typeable)
@@ -115,6 +115,20 @@ instance CommandArg PlaybackState where
     PlaybackPlaying -> "play"
     PlaybackStopped -> "stop"
     PlaybackPaused  -> "pause"
+
+data SubsystemName
+  = Database
+  | Player
+  | Mixer
+    deriving (Eq, Show, Read, Enum, Data, Typeable)
+
+instance CommandArg SubsystemName where
+  fromArg = fromJust . (`lookup` tbl)
+    where
+      tbl = [ (Database, "database")
+            , (Player, "player")
+            , (Mixer, "mixer")
+            ]
 
 ------------------------------------------------------------------------
 -- $object
