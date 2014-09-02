@@ -95,7 +95,7 @@ statusInfo = StatusInfo <$>
   field_ "playlist" intP <*>
   field_ "playlistlength" intP <*>
   field_ "mixrampdb" doubleP <*>
-  field_ "state" textP <*>
+  field_ "state" playbackStateP <*>
   optional (field_ "song" intP) <*>
   optional (field_ "songid" intP) <*>
   optional (field_ "time" timeElapsedP) <*>
@@ -104,6 +104,11 @@ statusInfo = StatusInfo <$>
   optional (field_ "audio" audioP) <*>
   optional (field_ "nextsong" intP) <*>
   optional (field_ "nextsongid" intP)
+
+playbackStateP :: A.Parser PlaybackState
+playbackStateP = pure PlaybackPlaying <* "play" <|>
+                 pure PlaybackStopped <* "stop" <|>
+                 pure PlaybackPaused  <* "pause"
 
 statsInfo :: Parser StatsInfo
 statsInfo = StatsInfo <$>

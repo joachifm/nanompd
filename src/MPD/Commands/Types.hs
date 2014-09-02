@@ -20,7 +20,7 @@ module MPD.Commands.Types (
     -- $scalar
     Decibel
   , Metadata(..)
-  , PlaybackState
+  , PlaybackState(..)
   , Seconds
   , SongId
   , SongPos
@@ -53,7 +53,6 @@ import qualified Data.HashMap.Strict as M
 -- $scalar
 
 type Decibel = Double
-type PlaybackState = Text
 type Seconds = Int
 type SongId = Int
 type SongPos = Int
@@ -101,6 +100,21 @@ data Metadata
 
 instance CommandArg Metadata where
   fromArg = fromString . show
+
+data PlaybackState
+  = PlaybackPlaying
+  | PlaybackStopped
+  | PlaybackPaused
+    deriving (Eq, Show, Read, Enum, Data, Typeable)
+
+instance NFData PlaybackState where
+  rnf x = x `seq` ()
+
+instance CommandArg PlaybackState where
+  fromArg x = case x of
+    PlaybackPlaying -> "play"
+    PlaybackStopped -> "stop"
+    PlaybackPaused  -> "pause"
 
 ------------------------------------------------------------------------
 -- $object
