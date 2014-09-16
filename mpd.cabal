@@ -52,6 +52,7 @@ library
     , MPD.Commands
     , MPD.Commands.Parser
     , MPD.Commands.Types
+    , MPD.Commands.Lens
     , MPD.Core
 
   other-modules:
