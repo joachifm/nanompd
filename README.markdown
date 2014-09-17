@@ -56,6 +56,10 @@ Feel free to append your name to the list of
 [CONTRIBUTORS](../master/CONTRIBUTORS) if you deem it appropriate to do
 so (anything above fixing a single-letter typo warrants a mention).
 
+# Status
+
+[![Build Status](https://travis-ci.org/joachifm/nanompd.svg?branch=master)](https://travis-ci.org/joachifm/nanompd)
+
 # Resources
 
 - `/join #vimus` @ FreeNode
