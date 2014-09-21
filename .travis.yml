@@ -4,3 +4,7 @@ ghc:
   - 7.8
   - 7.6
   - 7.4
+
+script:
+  - cabal sdist && cabal install dist/mpd-*.tar.gz
+  - cabal install --only-dependencies --enable-tests && cabal test
