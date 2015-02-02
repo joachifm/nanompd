@@ -23,7 +23,7 @@ module MPD.Commands.Parser (
   , pathP
   , timeElapsedP
   , volumeP
-    
+
     -- * Objects
     -- $object
   , lsEntry
