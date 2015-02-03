@@ -58,7 +58,7 @@ pathP :: A.Parser Path
 pathP = Path <$> textP
 
 volumeP :: A.Parser (Maybe Volume)
-volumeP = pure Nothing <* "-1" <|> Just <$> intP
+volumeP = Nothing <$ "-1" <|> Just <$> intP
 
 timeElapsedP :: A.Parser (Int, Int)
 timeElapsedP = (,) <$> A.decimal <* A.char ':' <*> A.decimal
@@ -106,9 +106,9 @@ statusInfo = StatusInfo <$>
   optional (field_ "nextsongid" intP)
 
 playbackStateP :: A.Parser PlaybackState
-playbackStateP = pure PlaybackPlaying <* "play" <|>
-                 pure PlaybackStopped <* "stop" <|>
-                 pure PlaybackPaused  <* "pause"
+playbackStateP = PlaybackPlaying <$ "play" <|>
+                 PlaybackStopped <$ "stop" <|>
+                 PlaybackPaused  <$ "pause"
 
 statsInfo :: Parser StatsInfo
 statsInfo = StatsInfo <$>

@@ -219,9 +219,9 @@ currentSong = command "currentsong" (optional songInfo)
 idle :: [SubsystemName] -> Command [SubsystemName]
 idle ss = command ("idle" .+ ss) (many (field_ "changed" p))
   where
-    p = pure Database <* "database" <|>
-        pure Player   <* "player" <|>
-        pure Mixer    <* "mixer"
+    p = Database <$ "database" <|>
+        Player   <$ "player"   <|>
+        Mixer    <$ "mixer"
 
 -- | Cancel 'idle'.
 noidle :: Command ()

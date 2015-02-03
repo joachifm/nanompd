@@ -80,7 +80,7 @@ liftP p = P $ do
 -- $scalar
 
 boolP :: A.Parser Bool
-boolP = pure True <* A.char '1' <|> pure False <* A.char '0'
+boolP = True <$ A.char '1' <|> False <$ A.char '0'
 
 doubleP :: A.Parser Double
 doubleP = A.double
