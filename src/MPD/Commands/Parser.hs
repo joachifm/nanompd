@@ -23,6 +23,7 @@ module MPD.Commands.Parser (
   , pathP
   , timeElapsedP
   , volumeP
+  , subsystemP
 
     -- * Objects
     -- $object
@@ -67,6 +68,12 @@ audioP :: A.Parser (Int, Int, Int)
 audioP = (,,) <$> A.decimal <* A.char ':'
               <*> A.decimal <* A.char ':'
               <*> A.decimal
+
+subsystemP :: A.Parser SubsystemName
+subsystemP =
+  Database <$ "database" <|>
+  Player   <$ "player"   <|>
+  Mixer    <$ "mixer"
 
 ------------------------------------------------------------------------
 -- $object

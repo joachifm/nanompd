@@ -217,11 +217,7 @@ currentSong = command "currentsong" (optional songInfo)
 
 -- | Wait for changes in any of the given subsystems.
 idle :: [SubsystemName] -> Command [SubsystemName]
-idle ss = command ("idle" .+ ss) (many (field_ "changed" p))
-  where
-    p = Database <$ "database" <|>
-        Player   <$ "player"   <|>
-        Mixer    <$ "mixer"
+idle ss = command ("idle" .+ ss) (many (field_ "changed" subsystemP))
 
 -- | Cancel 'idle'.
 noidle :: Command ()
