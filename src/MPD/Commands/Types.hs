@@ -70,7 +70,7 @@ instance IsString Path where
 instance CommandArg Path where
   fromArg (Path x) = "\"" <> x <> "\""
 
-newtype Range = Range (Int, Int) deriving (Show, Data, Typeable)
+newtype Range = Range (Int, Maybe Int) deriving (Show, Data, Typeable)
 
 instance NFData Range where
   rnf (Range x) = rnf x
