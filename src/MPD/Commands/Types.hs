@@ -43,7 +43,7 @@ import MPD.Core
 
 import Control.DeepSeq (NFData(..))
 import Data.Maybe (fromJust)
-import Data.Monoid ((<>))
+import Data.Monoid (Monoid(..), Sum(..), (<>))
 import Data.String (IsString(..))
 import Data.Data (Data, Typeable)
 import Data.Time.Clock (UTCTime)
@@ -61,6 +61,10 @@ type Volume = Int
 
 newtype Path = Path { unPath :: Text } deriving (Show, Data, Typeable)
 
+instance Monoid Path where
+  mempty = Path ""
+  p1 `mappend` p2 = Path (unPath p1 `mappend` unPath p2)
+
 instance NFData Path where
   rnf (Path x) = rnf x
 
@@ -71,6 +75,11 @@ instance CommandArg Path where
   fromArg (Path x) = "\"" <> x <> "\""
 
 newtype Range = Range (Int, Maybe Int) deriving (Show, Data, Typeable)
+
+instance Monoid Range where
+  mempty = Range (0, Nothing)
+  Range (s1, e1) `mappend` Range (s2, e2) = Range (s1 + s2, e3)
+    where e3 = fmap getSum (fmap Sum e1 `mappend` fmap Sum e2)
 
 instance NFData Range where
   rnf (Range x) = rnf x
