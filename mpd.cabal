@@ -82,6 +82,7 @@ test-suite specs
   other-modules:
       MPD.Core.CommandStrSpec
     , MPD.Core.ParserSpec
+    , MPD.Commands.QuerySpec
     , MPD.Commands.ParserSpec
 
   build-depends:
