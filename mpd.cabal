@@ -39,15 +39,12 @@ library
     , attoparsec >= 0.10 && < 1
     , bytestring >= 0.10 && < 1
     , deepseq >= 1.3 && < 2
-    , mtl >= 2 && < 3
+    , mtl >= 2.2 && < 3
     , network >= 2.4 && < 3
+    , transformers >= 0.4 && < 0.5
     , text >= 1.1 && < 2
     , time >= 1.4.2 && < 2
     , unordered-containers >= 0.2.4 && < 1
-
-    -- Extra
-    , either >= 4.3 && < 5
-    , exceptions >= 0.6 && < 1
 
   exposed-modules:
       MPD
@@ -62,9 +59,6 @@ library
     , MPD.Core.Command
     , MPD.Core.CommandArg
     , MPD.Core.CommandStr
-    , MPD.Core.Conn
-    , MPD.Core.Parser
-    , MPD.Core.Run
 
   ghc-options:
     -Wall
@@ -90,8 +84,6 @@ test-suite specs
     , attoparsec
     , bytestring
     , deepseq
-    , either
-    , exceptions
     , mtl
     , network
     , text

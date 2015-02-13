@@ -23,7 +23,7 @@ module MPD.Commands.Query (
   ) where
 
 import MPD.Commands.Types
-import MPD.Core (CommandArg(..))
+import MPD.Core.CommandArg (CommandArg(..))
 import Data.Monoid (Monoid(..))
 import qualified Data.Text as T
 

@@ -1,5 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE Safe #-}
+{-# LANGUAGE Trustworthy #-}
 
 {-|
 Module      : MPD.Core.ClientError
@@ -14,6 +14,7 @@ Portability : unportable
 module MPD.Core.ClientError (ClientError(..)) where
 
 import Data.Text (Text)
+import Network (HostName, PortID)
 
 data ClientError
   = ParseError String
@@ -23,7 +24,7 @@ data ClientError
     , errorCommandName :: Text
     , errorMessage :: Text
     }
-  | InvalidHost
+  | InvalidHost HostName PortID
   | ConnError IOError
   | Custom String
     deriving (Show)

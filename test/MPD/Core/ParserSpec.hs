@@ -3,10 +3,13 @@
 
 module MPD.Core.ParserSpec (spec) where
 
+import Util
 import MPD.Core
 
 import Control.Applicative
 import qualified Data.ByteString.Char8 as SB8
+
+import qualified Data.Attoparsec.ByteString.Char8 as A
 
 import Test.Hspec
 import Test.Hspec.Expectations.Contrib
@@ -17,25 +20,20 @@ spec :: Spec
 spec = do
 
   prop "boolP" $ forAll (elements ([0, 1]::[Int])) $ \x ->
-    liftP boolP `shouldAccept` [ SB8.pack (show x) ]
+    boolP `shouldAccept` SB8.pack (show x)
 
-  prop "doubleP" $ forAll (arbitrary :: Gen Double) $ \x ->
-    liftP doubleP `shouldAccept` [ SB8.pack (show x) ]
+  prop "floatP" $ forAll (arbitrary :: Gen Double) $ \x ->
+    floatP `shouldAccept` SB8.pack (show x)
 
   prop "intP" $ forAll (suchThat arbitrary (>= 0)) $ \x -> do
-    liftP intP `shouldAccept` [ SB8.pack (show (x::Int)) ]
+    intP `shouldAccept` SB8.pack (show (x::Int))
 
-  prop "textP" $ forAll (SB8.pack <$> listOf arbitrary) $ \x -> do
-    liftP textP `shouldAccept` [ x ]
+  prop "textP" $ forAll (SB8.pack <$> listOf1 arbitrary) $ \x -> do
+    textP `shouldAccept` x
 
-  it "field/single" $ do
-    field "foo" intP `shouldAccept` [ "foo: 1337" ]
+  it "fieldP/single" $ do
+    fieldP "foo" intP `shouldAccept` "foo: 1337\n"
 
-  it "field/compound" $ do
-    ((,) <$> field "foo" intP <*> field "bar" intP)
-    `shouldAccept` [ "foo: 1337", "bar: 7331" ]
-    
-------------------------------------------------------------------------
--- Internal helpers.
-
-p `shouldAccept` i = parse p i `shouldSatisfy` isRight
+  it "fieldP/compound" $ do
+    ((,) <$> fieldP "foo" intP <*> fieldP "bar" intP)
+    `shouldAccept` "foo: 1337\nbar: 7331\n"

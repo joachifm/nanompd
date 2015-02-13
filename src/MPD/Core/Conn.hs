@@ -100,7 +100,7 @@ open host port = do
   ver <- connIO (SB.hGetLine hdl)
   unless ("OK MPD " `SB.isPrefixOf` ver) $ do
     _ <- liftIO (tryIOError $ hClose hdl)
-    left InvalidHost
+    left $ InvalidHost host port
   return (hdl, ver)
 
 close :: (C.MonadThrow m, MonadIO m) => Handle -> EitherT ClientError m ()

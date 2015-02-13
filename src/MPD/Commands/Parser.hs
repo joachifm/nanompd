@@ -24,18 +24,16 @@ module MPD.Commands.Parser (
   , timeElapsedP
   , volumeP
   , subsystemP
+  , playbackStateP
 
     -- * Objects
     -- $object
-  , lsEntry
-  , lsEntryInfo
-  , songInfo
-  , statusInfo
-  , statsInfo
-
-#ifdef TEST
-  , parseIso8601_utc
-#endif
+  , lsEntryP
+  , lsEntryInfoP
+  , songInfoP
+  , statusInfoP
+  , statsInfoP
+  , songTagP
   ) where
 
 import MPD.Core
@@ -44,6 +42,7 @@ import MPD.Commands.Types
 import Control.Applicative
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
+import Data.ByteString (ByteString)
 import Data.Text (Text)
 import Data.Time.Calendar (Day, fromGregorian)
 import Data.Time.Clock (UTCTime(..), DiffTime, secondsToDiffTime)
@@ -75,71 +74,71 @@ subsystemP =
   Player   <$ "player"   <|>
   Mixer    <$ "mixer"
 
-------------------------------------------------------------------------
--- $object
-
-lsEntry :: Parser LsEntry
-lsEntry =
-  LsFile <$> field_ "file" pathP <|>
-  LsDir <$> field_ "directory" pathP <|>
-  LsPlaylist <$> field_ "playlist" pathP
-
-lsEntryInfo :: Parser LsEntryInfo
-lsEntryInfo =
-  LsSongInfo <$> songInfo <|>
-  (LsDirInfo <$> field_ "directory" pathP
-             <*> field_ "Last-Modified" dateP) <|>
-  (LsPlaylistInfo <$> field_ "playlist" pathP
-                  <*> field_ "Last-Modified" dateP)
-
-statusInfo :: Parser StatusInfo
-statusInfo = StatusInfo <$>
-  field_ "volume" volumeP <*>
-  field_ "repeat" boolP <*>
-  field_ "random" boolP <*>
-  field_ "single" boolP <*>
-  field_ "consume" boolP <*>
-  field_ "playlist" intP <*>
-  field_ "playlistlength" intP <*>
-  field_ "mixrampdb" doubleP <*>
-  field_ "state" playbackStateP <*>
-  optional (field_ "song" intP) <*>
-  optional (field_ "songid" intP) <*>
-  optional (field_ "time" timeElapsedP) <*>
-  optional (field_ "elapsed" doubleP) <*>
-  optional (field_ "bitrate" intP) <*>
-  optional (field_ "audio" audioP) <*>
-  optional (field_ "nextsong" intP) <*>
-  optional (field_ "nextsongid" intP)
-
 playbackStateP :: A.Parser PlaybackState
 playbackStateP = PlaybackPlaying <$ "play" <|>
                  PlaybackStopped <$ "stop" <|>
                  PlaybackPaused  <$ "pause"
 
-statsInfo :: Parser StatsInfo
-statsInfo = StatsInfo <$>
-  field_ "uptime" intP <*>
-  field_ "playtime" intP <*>
-  field_ "artists" intP <*>
-  field_ "albums" intP <*>
-  field_ "songs" intP <*>
-  field_ "db_playtime" intP <*>
-  field_ "db_update" intP
+------------------------------------------------------------------------
+-- $object
 
-songInfo :: Parser SongInfo
-songInfo = SongInfo <$>
-  field_ "file" pathP <*>
-  field_ "Last-Modified" dateP <*>
-  field_ "Time" intP <*>
-  (M.fromList <$> many songTag) <*>
-  optional (field_ "Pos" intP) <*>
-  optional (field_ "Id" intP)
+lsEntryP :: A.Parser LsEntry
+lsEntryP =
+  LsFile <$> fieldP "file" pathP <|>
+  LsDir <$> fieldP "directory" pathP <|>
+  LsPlaylist <$> fieldP "playlist" pathP
 
-songTag :: Parser (Label, Text)
-songTag = foldr1 (<|>) $ map (`field` textP) tagTypes
+lsEntryInfoP :: A.Parser LsEntryInfo
+lsEntryInfoP =
+  LsSongInfo <$> songInfoP <|>
+  (LsDirInfo <$> fieldP "directory" pathP
+             <*> fieldP "Last-Modified" dateP) <|>
+  (LsPlaylistInfo <$> fieldP "playlist" pathP
+                  <*> fieldP "Last-Modified" dateP)
 
-tagTypes :: [Label]
+statusInfoP :: A.Parser StatusInfo
+statusInfoP = StatusInfo <$>
+  fieldP "volume" volumeP <*>
+  fieldP "repeat" boolP <*>
+  fieldP "random" boolP <*>
+  fieldP "single" boolP <*>
+  fieldP "consume" boolP <*>
+  fieldP "playlist" intP <*>
+  fieldP "playlistlength" intP <*>
+  fieldP "mixrampdb" floatP <*>
+  fieldP "state" playbackStateP <*>
+  optional (fieldP "song" intP) <*>
+  optional (fieldP "songid" intP) <*>
+  optional (fieldP "time" timeElapsedP) <*>
+  optional (fieldP "elapsed" floatP) <*>
+  optional (fieldP "bitrate" intP) <*>
+  optional (fieldP "audio" audioP) <*>
+  optional (fieldP "nextsong" intP) <*>
+  optional (fieldP "nextsongid" intP)
+
+statsInfoP :: A.Parser StatsInfo
+statsInfoP = StatsInfo <$>
+  fieldP "uptime" intP <*>
+  fieldP "playtime" intP <*>
+  fieldP "artists" intP <*>
+  fieldP "albums" intP <*>
+  fieldP "songs" intP <*>
+  fieldP "db_playtime" intP <*>
+  fieldP "db_update" intP
+
+songInfoP :: A.Parser SongInfo
+songInfoP = SongInfo <$>
+  fieldP "file" pathP <*>
+  fieldP "Last-Modified" dateP <*>
+  fieldP "Time" intP <*>
+  (M.fromList <$> many songTagP) <*>
+  optional (fieldP "Pos" intP) <*>
+  optional (fieldP "Id" intP)
+
+songTagP :: A.Parser (ByteString, Text)
+songTagP = foldr1 (<|>) $ map (`pairP` textP) tagTypes
+
+tagTypes :: [ByteString]
 tagTypes = [
     "Artist"
   , "ArtistSort"

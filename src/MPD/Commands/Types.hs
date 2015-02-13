@@ -39,15 +39,16 @@ module MPD.Commands.Types (
   , viewTag
   ) where
 
-import MPD.Core
+import MPD.Core.CommandArg
 
 import Control.DeepSeq (NFData(..))
 import Data.Maybe (fromJust)
 import Data.Monoid (Monoid(..), Sum(..), (<>))
 import Data.String (IsString(..))
 import Data.Data (Data, Typeable)
-import Data.Time.Clock (UTCTime)
+import Data.Time (UTCTime)
 import Data.Text (Text)
+import Data.ByteString.Char8 (ByteString)
 import qualified Data.HashMap.Strict as M
 
 ------------------------------------------------------------------------
@@ -227,7 +228,7 @@ data SongInfo = SongInfo
   { songFile :: !Path
   , songLastModified :: !UTCTime
   , songTime :: !Seconds
-  , songTags :: !(M.HashMap Label Text)
+  , songTags :: !(M.HashMap ByteString Text)
   , songPos :: !(Maybe SongPos)
   , songId :: !(Maybe SongId)
   } deriving (Show, Data, Typeable)
@@ -240,5 +241,5 @@ instance NFData SongInfo where
           rnf (songPos x) `seq`
           rnf (songId x)
 
-viewTag :: SongInfo -> Label -> Maybe Text
+viewTag :: SongInfo -> ByteString -> Maybe Text
 viewTag si l = M.lookup l (songTags si)

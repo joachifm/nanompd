@@ -8,12 +8,19 @@ Warning: make sure to compare runs between identical environments
 module Main (main) where
 
 import MPD
-import Criterion.Main (defaultMain, bench, whnfIO)
+import Control.Applicative
+import Criterion.Main (defaultMain, bench, nfIO, whnfIO)
 import Control.Monad.Trans.Either (runEitherT)
+import Control.Monad.Trans.Except (runExceptT)
 
 main = defaultMain
   [
-    bench "ping"           $ whnfIO (runEitherT . run $ ping)
-  , bench "currentsong"    $ whnfIO (runEitherT . run $ currentSong)
-  , bench "listallinfo"    $ whnfIO (runEitherT . run $ listAllInfo Nothing)
+    bench "ping"         $ whnfIO (simple ping)
+  , bench "currentsong"  $ whnfIO (simple currentSong)
+  , bench "lsinfo"       $ whnfIO (simple $ lsInfo Nothing)
+  , bench "listallinfo"  $ whnfIO (simple $ listAllInfo Nothing)
+  , bench "combined"     $ whnfIO (simple $ ((,,,) <$> ping
+                                                   <*> currentSong
+                                                   <*> lsInfo Nothing
+                                                   <*> listAllInfo Nothing))
   ]

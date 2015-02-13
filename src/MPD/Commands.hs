@@ -5,7 +5,7 @@
 {-|
 Module      : MPD.Commands
 Description : Protocol command wrappers
-Copyright   : (c) Joachim Fasting, 2014
+Copyright   : (c) Joachim Fasting, 2015
 
 License     : MIT
 Maintainer  : joachifm@fastmail.fm
@@ -95,7 +95,7 @@ add uri = command ("add" .+ uri) (return ())
 
 -- | Like 'add', return song id of newly added path.
 addId :: Path -> Maybe SongPos -> Command SongId
-addId uri pos = command ("addid" .+ uri .+ pos) (liftP intP)
+addId uri pos = command ("addid" .+ uri .+ pos) intP
 
 -- | Clear current playlist.
 clear :: Command ()
@@ -107,13 +107,13 @@ deleteId id' = command ("deleteid" .+ id') (return ())
 
 -- | List song information for items in current playlist.
 playlistInfo :: Command [SongInfo]
-playlistInfo = command "playlistinfo" (many songInfo)
+playlistInfo = command "playlistinfo" (many songInfoP)
 
 -- | List changes to the playlist since a given version.
 plChangesPosId :: Int -> Command [(Text, Text)]
 plChangesPosId v = command ("plchangesposid" .+ v) (many p)
   where
-    p = (,) <$> field_ "cpos" textP <*> field_ "id" textP
+    p = (,) <$> fieldP "cpos" textP <*> fieldP "id" textP
 
 -- | Shuffle current playlist.
 shuffle :: Maybe Range -> Command ()
@@ -124,27 +124,27 @@ shuffle mbRange = command ("shuffle" .+ mbRange) (return ())
 
 -- | Find items where @meta = value@ exactly.
 find :: Query -> Command [SongInfo]
-find qry = command ("find" .+ qry) (many songInfo)
+find qry = command ("find" .+ qry) (many songInfoP)
 
 -- | A recursive 'lsInfo'.
 listAllInfo :: Maybe Path -> Command [LsEntryInfo]
-listAllInfo mbPath = command ("listallinfo" .+ mbPath) (many lsEntryInfo)
+listAllInfo mbPath = command ("listallinfo" .+ mbPath) (many lsEntryInfoP)
 
 -- | List names for items under path.
 listAll :: Path -> Command [LsEntry]
-listAll path = command ("listall" .+ path) (many lsEntry)
+listAll path = command ("listall" .+ path) (many lsEntryP)
 
 -- | List information for items under path.
 lsInfo :: Maybe Path -> Command [LsEntryInfo]
-lsInfo mbPath = command ("lsinfo" .+ mbPath) (many lsEntryInfo)
+lsInfo mbPath = command ("lsinfo" .+ mbPath) (many lsEntryInfoP)
 
 -- | Initiate rescan, optionally at given path.
 rescan :: Maybe Path -> Command Int
-rescan mbPath = command ("rescan" .+ mbPath) (field_ "updating_db" intP)
+rescan mbPath = command ("rescan" .+ mbPath) (fieldP "updating_db" intP)
 
 -- | Initiate update, optionally at given path.
 update :: Maybe Path -> Command Int
-update mbPath = command ("update" .+ mbPath) (field_ "updating_db" intP)
+update mbPath = command ("update" .+ mbPath) (fieldP "updating_db" intP)
 
 ------------------------------------------------------------------------
 -- Playback control
@@ -213,11 +213,11 @@ single b = command ("single" .+ b) (return ())
 
 -- | Song information for currently playing song, if any.
 currentSong :: Command (Maybe SongInfo)
-currentSong = command "currentsong" (optional songInfo)
+currentSong = command "currentsong" (optional songInfoP)
 
 -- | Wait for changes in any of the given subsystems.
 idle :: [SubsystemName] -> Command [SubsystemName]
-idle ss = command ("idle" .+ ss) (many (field_ "changed" subsystemP))
+idle ss = command ("idle" .+ ss) (many (fieldP "changed" subsystemP))
 
 -- | Cancel 'idle'.
 noidle :: Command ()
@@ -225,11 +225,11 @@ noidle = command "noidle" (return ())
 
 -- | Daemon status information.
 status :: Command StatusInfo
-status = command "status" statusInfo
+status = command "status" statusInfoP
 
 -- | Daemon statistics.
 stats :: Command StatsInfo
-stats = command "stats" statsInfo
+stats = command "stats" statsInfoP
 
 ------------------------------------------------------------------------
 -- Stored playlists
@@ -237,7 +237,7 @@ stats = command "stats" statsInfo
 -- | List song information for songs in a stored playlist.
 listPlaylistInfo :: Path -> Command [SongInfo]
 listPlaylistInfo plName =
-  command ("listplaylistinfo" .+ plName) (many songInfo)
+  command ("listplaylistinfo" .+ plName) (many songInfoP)
 
 -- | Load playlist.
 load :: Path -> Command ()
