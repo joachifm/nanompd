@@ -2,18 +2,15 @@
 
 module Foo where
 
-import Control.Arrow
-import Data.Function
-
 import Control.Applicative
+import Control.Monad ((>=>), (<=<), join)
+
+import Data.Function
 import Data.Semigroup
 
 import Data.Attoparsec.ByteString.Char8
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as SB
-
-import Control.Monad.Trans.Except
-import Control.Monad.Trans.Free
 
 import System.IO
 import System.IO.Error
@@ -55,7 +52,8 @@ test5 = parse ((,) <$> response object <*> response object) (dummy1 <> dummy3)
 test6 = parse (response object) (dummy1 <> dummy2)
 test7 = parse (response object) (dummy1 <> dummy3)
 
-foo = run ["ping"] (return () <* "list_OK\n") print
+------------------------------------------------------------------------
+-- Commands
 
 connect = do
   h <- connectTo "localhost" (PortNumber 6600)
@@ -91,8 +89,6 @@ worker g k = fix $ \recur p -> do
   ln <- g
   case feed p ln of
     Partial p' -> recur (Partial p')
-
     Done "" r  -> k r
     Done i _   -> fail ("superflous input: " ++ show i)
-
     Fail i _ s -> fail ("failed parsing " ++ show i ++ "; " ++ s)
