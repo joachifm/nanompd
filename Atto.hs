@@ -55,38 +55,19 @@ test7 = A.parse (response object) (dummy1 <> dummy3)
 ------------------------------------------------------------------------
 -- Direct
 
-simple :: ([ByteString], A.Parser a) -> (a -> IO r) -> IO r
 simple (q, p) k = do
   (h, _) <- connect
   r <- runWith h (q, p <* "OK\n") k
   hClose h
   return r
 
-runWith
-  :: Handle
-  -> ([ByteString], A.Parser a)
-  -> (a -> IO r)
-  -> IO r
-runWith h (q, p) k = SB.hPut h (pack q) >> (process h p k)
+runWith h (q, p) k = send h q >> (process h p k)
 
-process :: Handle -> A.Parser a -> (a -> IO r) -> IO r
 process h p k = start recv p k
   where recv = SB.hGetSome h 64
 
-start
-  :: (Monad m)
-  => m ByteString
-  -> A.Parser a
-  -> (a -> m r)
-  -> m r
 start g p k = worker g k (A.parse p "")
 
-worker
-  :: (Monad m)
-  => m ByteString
-  -> (a -> m r)
-  -> A.IResult ByteString a
-  -> m r
 worker g k = fix $ \recur p -> do
   ln <- g
   case A.feed p ln of

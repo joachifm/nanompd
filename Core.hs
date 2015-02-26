@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Core (
+  mpd,
   connect, close,
   pack, send,
   ) where
@@ -8,6 +9,12 @@ module Core (
 import Network
 import System.IO
 import qualified Data.ByteString.Char8 as SB
+
+mpd f = do
+  (h, _) <- connect
+  r <- f h
+  close h
+  return r
 
 connect = do
   h <- connectTo "localhost" (PortNumber 6600)
