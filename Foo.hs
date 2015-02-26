@@ -5,34 +5,11 @@ module Foo where
 
 import Control.Applicative
 import Control.Monad ((>=>), (<=<), join)
-
 import Data.Function
 import Data.Semigroup
 
-import Data.Void
-
-import Lens.Family2
-import Lens.Family2.State.Strict (zoom)
-import Lens.Family2.Stock
-
-import Control.Monad.Trans
-import Control.Monad.Identity
-import Control.Monad.Trans.Free
-
-import Control.Monad.Cont (ContT(..))
-import qualified Control.Monad.Cont as Cont
-
-import Control.Monad.Trans.Except (ExceptT(..))
-import qualified Control.Monad.Trans.Except as Except
-
-import Pipes
-import qualified Pipes.Attoparsec as PA
-import qualified Pipes.Parse  as PP
-import qualified Pipes.Group as PG
-import qualified Pipes.ByteString as PB
-
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as SB
+import qualified Data.ByteString.Char8            as SB
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
 import System.IO
@@ -133,20 +110,8 @@ worker g k = fix $ \recur p -> do
   ln <- g
   case A.feed p ln of
     A.Partial p' -> recur (A.Partial p')
+
     A.Done "" r  -> k r
     A.Done i _   -> fail ("superflous input: " ++ show i)
+
     A.Fail i _ s -> fail ("failed parsing " ++ show i ++ "; " ++ s)
-
-------------------------------------------------------------------------
--- Pipes
-
-foo q p = do
-  (h, _) <- liftIO connect
-  liftIO (SB.hPut h $ pack [q])
-  PA.parsed (response p) (PB.hGetSome 64 h)
-
-{-
-test_p_1 = runEffect $
-  for (PA.parsed (object <* "list_OK\n") (yield dummy1)) (lift . print)
-
--}
