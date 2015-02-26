@@ -97,8 +97,10 @@ helo = "OK MPD " *> ((,,) <$> A.decimal <* A.char '.'
                           <*> A.decimal <* A.char '\n')
 
 pack :: [T.Text] -> SB.ByteString
-pack = T.encodeUtf8 . T.unlines . ("command_list_ok_begin" :)
+pack = T.encodeUtf8 . T.unlines
+     . ("command_list_ok_begin" :)
      . (++ ["command_list_end"])
+     . filter (not . T.null)
 
 protocolError :: A.Parser (Int, Int, T.Text, T.Text)
 protocolError = "ACK " *> ((,,,) <$>
