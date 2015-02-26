@@ -5,12 +5,14 @@ module Foo () where
 
 import Data.Void
 
-import Control.Monad.Cont (ContT(..))
-import Control.Monad.Identity
 import Control.Monad.Trans
-import Control.Monad.Trans.Except (ExceptT(..))
+import Control.Monad.Identity
 import Control.Monad.Trans.Free
+
+import Control.Monad.Cont (ContT(..))
 import qualified Control.Monad.Cont as Cont
+
+import Control.Monad.Trans.Except (ExceptT(..))
 import qualified Control.Monad.Trans.Except as Except
 
 import Pipes
@@ -86,12 +88,14 @@ connect = do
     ("OK MPD ", v) -> return (h, v)
     _              -> fail "invalid host"
 
+close h = SB.hPut h "close\n" >> hClose h
+
+send h = SB.hPut h . pack
+
 pack = SB.unlines
      . ("command_list_ok_begin" :)
      . (++ ["command_list_end"])
      . filter (not . SB.null)
-
-close h = SB.hPut h "close\n" >> hClose h
 
 ------------------------------------------------------------------------
 -- Cont
@@ -124,3 +128,15 @@ worker g k = fix $ \recur p -> do
 
 ------------------------------------------------------------------------
 -- Pipes
+
+connectE :: (MonadIO m) => Effect m (Handle, ByteString)
+connectE = liftIO connect
+
+sendE :: (MonadIO m) => Handle -> [ByteString] -> Effect m ()
+sendE h xs = liftIO (SB.hPut h (pack xs))
+
+closeE :: (MonadIO m) => Handle -> Effect m ()
+closeE h = liftIO (close h)
+
+test_p_1 = runEffect $
+  for (PA.parsed (object <* "list_OK\n") (yield dummy1)) (lift . print)
