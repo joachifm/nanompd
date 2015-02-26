@@ -1,9 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
-module Foo () where
+module Foo where
+
+import Control.Applicative
+import Control.Monad ((>=>), (<=<), join)
+
+import Data.Function
+import Data.Semigroup
 
 import Data.Void
+
+import Lens.Family2
+import Lens.Family2.State.Strict (zoom)
+import Lens.Family2.Stock
 
 import Control.Monad.Trans
 import Control.Monad.Identity
@@ -20,12 +30,6 @@ import qualified Pipes.Attoparsec as PA
 import qualified Pipes.Parse  as PP
 import qualified Pipes.Group as PG
 import qualified Pipes.ByteString as PB
-
-import Control.Applicative
-import Control.Monad ((>=>), (<=<), join)
-
-import Data.Function
-import Data.Semigroup
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as SB
@@ -74,13 +78,6 @@ test7 = A.parse (response object) (dummy1 <> dummy3)
 ------------------------------------------------------------------------
 -- Core
 
-data ClientError
-  = ProtocolError ByteString
-  | InvalidHost HostName PortID
-  | ConnError IOError
-  | Custom String
-    deriving (Show)
-
 connect = do
   h <- connectTo "localhost" (PortNumber 6600)
   l <- SB.hGetLine h
@@ -98,26 +95,40 @@ pack = SB.unlines
      . filter (not . SB.null)
 
 ------------------------------------------------------------------------
--- Cont
+-- Direct
 
-command :: ByteString -> A.Parser a -> ([ByteString], A.Parser a)
-command q p = ([q], p <* "list_OK\n")
-
+simple :: ([ByteString], A.Parser a) -> (a -> IO r) -> IO r
 simple (q, p) k = do
   (h, _) <- connect
   r <- runWith h (q, p <* "OK\n") k
   hClose h
   return r
 
-runWith h (q, p) k = do
-  SB.hPut h (pack q)
-  process h p k
+runWith
+  :: Handle
+  -> ([ByteString], A.Parser a)
+  -> (a -> IO r)
+  -> IO r
+runWith h (q, p) k = SB.hPut h (pack q) >> (process h p k)
 
+process :: Handle -> A.Parser a -> (a -> IO r) -> IO r
 process h p k = start recv p k
   where recv = SB.hGetSome h 64
 
+start
+  :: (Monad m)
+  => m ByteString
+  -> A.Parser a
+  -> (a -> m r)
+  -> m r
 start g p k = worker g k (A.parse p "")
 
+worker
+  :: (Monad m)
+  => m ByteString
+  -> (a -> m r)
+  -> A.IResult ByteString a
+  -> m r
 worker g k = fix $ \recur p -> do
   ln <- g
   case A.feed p ln of
@@ -129,14 +140,13 @@ worker g k = fix $ \recur p -> do
 ------------------------------------------------------------------------
 -- Pipes
 
-connectE :: (MonadIO m) => Effect m (Handle, ByteString)
-connectE = liftIO connect
+foo q p = do
+  (h, _) <- liftIO connect
+  liftIO (SB.hPut h $ pack [q])
+  PA.parsed (response p) (PB.hGetSome 64 h)
 
-sendE :: (MonadIO m) => Handle -> [ByteString] -> Effect m ()
-sendE h xs = liftIO (SB.hPut h (pack xs))
-
-closeE :: (MonadIO m) => Handle -> Effect m ()
-closeE h = liftIO (close h)
-
+{-
 test_p_1 = runEffect $
   for (PA.parsed (object <* "list_OK\n") (yield dummy1)) (lift . print)
+
+-}
