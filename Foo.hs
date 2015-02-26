@@ -72,6 +72,13 @@ test7 = A.parse (response object) (dummy1 <> dummy3)
 ------------------------------------------------------------------------
 -- Core
 
+data ClientError
+  = ProtocolError ByteString
+  | InvalidHost HostName PortID
+  | ConnError IOError
+  | Custom String
+    deriving (Show)
+
 connect = do
   h <- connectTo "localhost" (PortNumber 6600)
   l <- SB.hGetLine h
@@ -87,7 +94,7 @@ pack = SB.unlines
 close h = SB.hPut h "close\n" >> hClose h
 
 ------------------------------------------------------------------------
--- Commands
+-- Cont
 
 command :: ByteString -> A.Parser a -> ([ByteString], A.Parser a)
 command q p = ([q], p <* "list_OK\n")
@@ -114,3 +121,6 @@ worker g k = fix $ \recur p -> do
     A.Done "" r  -> k r
     A.Done i _   -> fail ("superflous input: " ++ show i)
     A.Fail i _ s -> fail ("failed parsing " ++ show i ++ "; " ++ s)
+
+------------------------------------------------------------------------
+-- Pipes
