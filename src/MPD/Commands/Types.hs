@@ -157,13 +157,13 @@ instance NFData LsEntry where
 data LsEntryInfo
   = LsSongInfo !SongInfo
   | LsDirInfo !Path !UTCTime
-  | LsPlaylistInfo !Path !UTCTime
+  | LsPListInfo !Path !UTCTime
     deriving (Show, Data, Typeable)
 
 instance NFData LsEntryInfo where
   rnf (LsSongInfo x) = rnf x
   rnf (LsDirInfo x y) = rnf x `seq` rnf y
-  rnf (LsPlaylistInfo x y) = rnf x `seq` rnf y
+  rnf (LsPListInfo x y) = rnf x `seq` rnf y
 
 data StatsInfo = StatsInfo
   { statsArtists :: !Int

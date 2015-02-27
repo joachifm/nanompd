@@ -107,7 +107,7 @@ deleteId id' = command ("deleteid" .+ id') (return ())
 
 -- | List song information for items in current playlist.
 playlistInfo :: Command [SongInfo]
-playlistInfo = command "playlistinfo" (many songInfoP)
+playlistInfo = command "playlistinfo" (many playlistSongInfoP)
 
 -- | List changes to the playlist since a given version.
 plChangesPosId :: Int -> Command [(Text, Text)]

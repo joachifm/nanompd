@@ -31,6 +31,7 @@ module MPD.Commands.Parser (
   , lsEntryP
   , lsEntryInfoP
   , songInfoP
+  , playlistSongInfoP
   , statusInfoP
   , statsInfoP
   , songTagP
@@ -90,11 +91,24 @@ lsEntryP =
 
 lsEntryInfoP :: A.Parser LsEntryInfo
 lsEntryInfoP =
-  LsSongInfo <$> songInfoP <|>
-  (LsDirInfo <$> fieldP "directory" pathP
-             <*> fieldP "Last-Modified" dateP) <|>
-  (LsPlaylistInfo <$> fieldP "playlist" pathP
-                  <*> fieldP "Last-Modified" dateP)
+     LsSongInfo <$> songInfoP
+ <|> (LsDirInfo
+      <$> fieldP "directory" pathP
+      <*> fieldP "Last-Modified" dateP)
+ <|> (LsPListInfo
+      <$> fieldP "playlist" pathP
+      <*> fieldP "Last-Modified" dateP)
+
+-- Note: sometimes MPD returns fields in a different order; see
+-- playlistSongInfoP for details.
+songInfoP :: A.Parser SongInfo
+songInfoP = SongInfo
+  <$> fieldP "file" pathP
+  <*> fieldP "Last-Modified" dateP
+  <*> fieldP "Time" intP
+  <*> (M.fromList <$> A.many' songTagP)
+  <*> optional (fieldP "Pos" intP)
+  <*> optional (fieldP "Id" intP)
 
 statusInfoP :: A.Parser StatusInfo
 statusInfoP = StatusInfo <$>
@@ -126,39 +140,48 @@ statsInfoP = StatsInfo <$>
   fieldP "db_playtime" intP <*>
   fieldP "db_update" intP
 
-songInfoP :: A.Parser SongInfo
-songInfoP = SongInfo <$>
+playlistSongInfoP :: A.Parser SongInfo
+playlistSongInfoP = adapt <$>
   fieldP "file" pathP <*>
   fieldP "Last-Modified" dateP <*>
+  -- NOTE: unlike for lsallinfo, MPD returns the tags BEFORE
+  -- time here, which is why we cannot re-use the parser in
+  -- lsEntryInfoP.
+  (M.fromList <$> A.many' songTagP) <*>
   fieldP "Time" intP <*>
-  (M.fromList <$> many songTagP) <*>
   optional (fieldP "Pos" intP) <*>
   optional (fieldP "Id" intP)
+  where
+    adapt a b c d e f = SongInfo a b d c e f
 
 songTagP :: A.Parser (ByteString, Text)
-songTagP = foldr1 (<|>) $ map (`pairP` textP) tagTypes
+songTagP = A.choice (map (`pairP` textP) tagTypes)
 
 tagTypes :: [ByteString]
-tagTypes = [
-    "Artist"
-  , "ArtistSort"
-  , "Album"
-  , "AlbumArtist"
-  , "AlbumArtistSort"
-  , "Title"
-  , "Track"
-  , "Name"
-  , "Genre"
-  , "Date"
-  , "Composer"
-  , "Performer"
-  , "Disc"
-  , "MUSICBRAINZ_ARTISTID"
-  , "MUSICBRAINZ_ALBUMID"
-  , "MUSICBRAINZ_ALBUMARTISTID"
-  , "MUSICBRAINZ_RELEASETRACKID"
-  , "MUSICBRAINZ_TRACKID"
-  ]
+tagTypes =
+    [
+      "Album"
+    , "Artist"
+    , "Date"
+    , "Genre"
+    , "Title"
+
+    , "Track"
+    , "Disc"
+
+    , "Composer"
+    , "Performer"
+
+    , "AlbumArtist"
+    , "AlbumArtistSort"
+    , "AlbumSort"
+    , "ArtistSort"
+
+    , "MUSICBRAINZ_ARTISTID"
+    , "MUSICBRAINZ_ALBUMID"
+    , "MUSICBRAINZ_ALBUMARTISTID"
+    , "MUSICBRAINZ_TRACKID"
+    ]
 
 ------------------------------------------------------------------------
 -- A specialised ISO 8601 parser for dates in the <date>T<time>Z format,
