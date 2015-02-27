@@ -24,7 +24,7 @@ module MPD
   ) where
 
 import MPD.Commands
-import MPD.Core (ClientError(..), run, withConn, simple)
+import MPD.Core (Command, ClientError(..), run, withConn, simple)
 import Prelude hiding (repeat)
 
 {-$usage
