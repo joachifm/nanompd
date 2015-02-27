@@ -26,7 +26,8 @@ module MPD.Core (
   module MPD.Core.CommandStr,
 
   -- * Running commands
-  ClientError(..), ProtocolVersion, run, withConn, simple,
+  ClientError(..), ProtocolVersion,
+  run, withConn, simple,
   ) where
 
 import MPD.Core.CommandStr
@@ -38,7 +39,7 @@ import Data.Functor
 import Data.Monoid
 
 import Control.Exception (bracket)
-import Control.Monad.Trans.Except (ExceptT(..))
+import Control.Monad.Trans.Except
 
 import System.IO.Error
 
