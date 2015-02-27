@@ -8,6 +8,7 @@ import Core
 import Control.Monad.Trans.Except (ExceptT(..))
 
 import Control.Applicative
+import Data.Functor
 import Data.Function
 import Data.Semigroup
 
@@ -30,6 +31,10 @@ pair k v = (,) <$> A.string k <* A.string ": " <*> v <* A.char '\n'
 
 field :: ByteString -> A.Parser a -> A.Parser a
 field k v = snd <$> pair k v
+
+bool = A.char '0' $> False <|> A.char '1' $> True
+text = A.takeWhile1 (/= '\n')
+int  = (A.decimal :: A.Parser Int)
 
 response :: A.Parser a -> A.Parser (Either ByteString a)
 response p =
@@ -81,12 +86,49 @@ spec = describe "Parser" $ do
 ------------------------------------------------------------------------
 -- Commands
 
-data Command a = Command [ByteString] (A.Parser a)
+ping = command "ping" (return ())
 
-simple (q, p) k = mpd $ \h -> do
-  runWith h (q, p <* "OK\n") k
+playlistinfo = command "playlistinfo" playlistinfoP
 
-runWith h (q, p) k = send h q >> (process h p k)
+playlistinfoP = A.many' $ (,,,,,) <$>
+  field "file" text <*>
+  field "Last-Modified" text <*>
+  A.many' songTag <*>
+  field "Time" int <*>
+  optional (field "Pos" int) <*>
+  optional (field "Id" int)
+
+songTag = A.choice (map (`field` text) tags) where
+  tags =
+    [
+      "Album"
+    , "Artist"
+    , "Composer"
+    , "Date"
+    , "Disc"
+    , "Genre"
+    , "Performer"
+    , "Title"
+    , "Track"
+
+    , "AlbumArtist"
+    , "AlbumArtistSort"
+    , "AlbumSort"
+    , "ArtistSort"
+
+    , "MUSICBRAINZ_ARTISTID"
+    , "MUSICBRAINZ_ALBUMID"
+    , "MUSICBRAINZ_ALBUMARTISTID"
+    , "MUSICBRAINZ_TRACKID"
+    ]
+
+data Command a = Command [ByteString] (A.Parser (Either ByteString a))
+
+command q p = Command [q] (response p)
+
+simple (Command q p) k = mpd $ \h -> runWith h (q, p <* "OK\n") k
+
+runWith h (q, p) k = send h q >> process h p k
 
 process h p k = start recv p k
   where recv = SB.hGetSome h 64
@@ -97,8 +139,6 @@ worker g k = fix $ \recur p -> do
   ln <- g
   case A.feed p ln of
     A.Partial p' -> recur (A.Partial p')
-
     A.Done "" r  -> k r
     A.Done i _   -> fail ("superflous input: " ++ show i)
-
     A.Fail i _ s -> fail ("failed parsing " ++ show i ++ "; " ++ s)
