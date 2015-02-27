@@ -72,24 +72,6 @@ fieldP k v = snd <$> pairP k v
 
 ------------------------------------------------------------------------
 
-data Command a = Command [CommandStr] (ExceptT SB.ByteString A.Parser a)
-  deriving (Functor)
-
-instance Applicative Command where
-  pure = Command [] . pure
-  Command q1 p1 <*> Command q2 p2 = Command (q1 ++ q2) (p1 <*> p2)
-
-instance (Monoid a) => Monoid (Command a) where
-  mempty  = pure mempty
-  mappend = liftA2 mappend
-
-command :: CommandStr -> A.Parser a -> Command a
-command q p = Command [q] . ExceptT $ A.eitherP
-  ("ACK " *> A.takeWhile1 (/= '\n') <* A.char '\n')
-  (p <* "list_OK\n")
-
-------------------------------------------------------------------------
-
 type ProtocolVersion = (Int, Int, Int)
 
 helo :: A.Parser ProtocolVersion
@@ -109,6 +91,24 @@ protocolError = "ACK " *> ((,,,) <$>
   (A.decimal <* A.string "] {") <*>
   (T.decodeUtf8 <$> A.takeWhile1 (/= '}') <* A.string "} ") <*>
   (T.decodeUtf8 <$> A.takeWhile1 (/= '\n') <* A.char '\n'))
+
+------------------------------------------------------------------------
+
+data Command a = Command [CommandStr] (ExceptT SB.ByteString A.Parser a)
+  deriving (Functor)
+
+instance Applicative Command where
+  pure = Command [] . pure
+  Command q1 p1 <*> Command q2 p2 = Command (q1 ++ q2) (p1 <*> p2)
+
+instance (Monoid a) => Monoid (Command a) where
+  mempty  = pure mempty
+  mappend = liftA2 mappend
+
+command :: CommandStr -> A.Parser a -> Command a
+command q p = Command [q] . ExceptT $ A.eitherP
+  ("ACK " *> A.takeWhile1 (/= '\n') <* A.char '\n')
+  (p <* "list_OK\n")
 
 ------------------------------------------------------------------------
 
