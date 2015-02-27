@@ -92,7 +92,17 @@ protocolError = "ACK " *> ((,,,) <$>
   (T.decodeUtf8 <$> A.takeWhile1 (/= '}') <* A.string "} ") <*>
   (T.decodeUtf8 <$> A.takeWhile1 (/= '\n') <* A.char '\n'))
 
+responseP :: A.Parser a -> A.Parser (Either SB.ByteString a)
+responseP p = A.eitherP
+  ("ACK " *> A.takeWhile1 (/= '\n') <* A.char '\n')
+  (p <* "list_OK\n")
+
 ------------------------------------------------------------------------
+
+-- Note: wrapping the parser in ExceptT is intended to allow
+-- stopping the parsing process when we encounter an ACK.
+-- The left value is the protocol error message from MPD, which we defer
+-- parsing further until the command is run.
 
 data Command a = Command [CommandStr] (ExceptT SB.ByteString A.Parser a)
   deriving (Functor)
@@ -106,9 +116,7 @@ instance (Monoid a) => Monoid (Command a) where
   mappend = liftA2 mappend
 
 command :: CommandStr -> A.Parser a -> Command a
-command q p = Command [q] . ExceptT $ A.eitherP
-  ("ACK " *> A.takeWhile1 (/= '\n') <* A.char '\n')
-  (p <* "list_OK\n")
+command q = Command [q] . ExceptT . responseP
 
 ------------------------------------------------------------------------
 
