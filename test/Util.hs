@@ -1,7 +1,7 @@
 module Util where
 
 import Test.Hspec
-import Test.Hspec.Expectations.Contrib
+import Data.Either (isRight)
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString.Char8 as SB
 
