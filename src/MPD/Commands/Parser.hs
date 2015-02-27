@@ -147,6 +147,10 @@ playlistSongInfoP = adapt <$>
   -- NOTE: unlike for lsallinfo, MPD returns the tags BEFORE
   -- time here, which is why we cannot re-use the parser in
   -- lsEntryInfoP.
+  --
+  -- TODO: rename current SongInfo to SongInfo' and provide
+  -- newtype wrappers so we can distinguish between these at the
+  -- type level as well.
   (M.fromList <$> A.many' songTagP) <*>
   fieldP "Time" intP <*>
   optional (fieldP "Pos" intP) <*>
