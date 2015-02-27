@@ -66,7 +66,7 @@ textP :: A.Parser T.Text
 textP = T.decodeUtf8 <$> A.takeWhile1 (/= '\n')
 
 pairP :: SB.ByteString -> A.Parser a -> A.Parser (SB.ByteString, a)
-pairP k v = (,) <$> (A.string k <* A.string ": ") <*> v <* A.char '\n'
+pairP k v = (,) <$> A.string k <* A.string ": " <*> v <* A.char '\n'
 
 fieldP :: SB.ByteString -> A.Parser a -> A.Parser a
 fieldP k v = snd <$> pairP k v
