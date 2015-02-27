@@ -4,6 +4,7 @@
 module MPD.Core.ParserSpec (spec) where
 
 import Util
+import Gen
 import MPD.Core
 
 import Control.Applicative
@@ -28,7 +29,7 @@ spec = do
   prop "intP" $ forAll (suchThat arbitrary (>= 0)) $ \x -> do
     intP `shouldAccept` SB8.pack (show (x::Int))
 
-  prop "textP" $ forAll (SB8.pack <$> listOf1 arbitrary) $ \x -> do
+  prop "textP" $ forAll textG $ \x -> do
     textP `shouldAccept` x
 
   it "fieldP/single" $ do
