@@ -1,6 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
+{-|
+
+Implementation notes
+--------------------
+
+The entire response is parsed with attoparsec, correctly pairing parsers
+with responses. The main drawback of this design is that processing of
+individual responses cannot begin before parsing has completed.
+-}
+
 module Atto (
 
   spec,
