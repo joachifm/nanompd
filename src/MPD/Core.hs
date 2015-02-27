@@ -86,11 +86,11 @@ pack = T.encodeUtf8 . T.unlines
      . filter (not . T.null)
 
 protocolError :: A.Parser (Int, Int, T.Text, T.Text)
-protocolError = "ACK " *> ((,,,) <$>
+protocolError = ((,,,) <$> -- note: expect that we've already parsed "ACK "
   (A.char '[' *> A.decimal <* A.char '@') <*>
   (A.decimal <* A.string "] {") <*>
   (T.decodeUtf8 <$> A.takeWhile1 (/= '}') <* A.string "} ") <*>
-  (T.decodeUtf8 <$> A.takeWhile1 (/= '\n') <* A.char '\n'))
+  (T.decodeUtf8 <$> A.takeWhile1 (/= '\n'))) {- <* A.char '\n')) -}
 
 responseP :: A.Parser a -> A.Parser (Either SB.ByteString a)
 responseP p = A.eitherP
@@ -120,30 +120,39 @@ command q = Command [q] . ExceptT . responseP
 
 ------------------------------------------------------------------------
 
-io :: IO a -> IO (Either ClientError a)
-io m = either (Left . ConnError) Right <$> tryIOError m
+io :: IO a -> ExceptT ClientError IO a
+io m = ExceptT $ either (Left . ConnError) Right <$> tryIOError m
 
-send :: Handle -> [CommandStr] -> IO ()
-send hdl = SB.hPut hdl . pack . map render
+send :: Handle -> [CommandStr] -> ExceptT ClientError IO ()
+send hdl = io . SB.hPut hdl . pack . map render
 
-recv :: Handle -> A.Parser a -> IO (A.Result a)
-recv hdl p = do
-  A.parseWith (SB.hGetSome hdl kBUFSIZ) p ""
-  -- TODO: we need to throw away the final OK, but if we
-  -- do @(p <* "OK\n")@ we hang forever on ACK ... maybe do it in
-  -- run?
+recv :: Handle -> A.Parser a -> ExceptT ClientError IO (A.Result a)
+recv hdl p = io $ A.parseWith (SB.hGetSome hdl kBUFSIZ) p ""
 
 -- Feed input n octets at a time (TODO: what is a good size here?)
 kBUFSIZ = 1024 :: Int
 
-run :: Handle -> Command a -> IO a
-run hdl (Command q p) = send hdl q >> (f =<< recv hdl (runExceptT p))
-  where
-    f x = case A.eitherResult x of
-      Right r -> case r of
-        Left e   -> fail (show e)
-        Right r' -> return r'
-      Left e -> fail (show e)
+run :: Handle -> Command a -> ExceptT ClientError IO a
+run hdl (Command q p) = do
+  send hdl q
+  -- Note: The ugliness of this code indicates that this design is bad,
+  -- but it kind of works for now.
+  res <- recv hdl (runExceptT p)
+  ExceptT $ return $
+    case res of
+
+      A.Done l r -> case r of
+
+        Left e  -> case A.parseOnly protocolError e of
+          Left e'            -> Left (Custom e')
+          Right (a, b, c, d) -> Left (ProtocolError a b c d)
+
+        Right x
+          | l == "OK\n" -> Right x
+          | otherwise   -> Left (ParseError $ "left-overs: " ++ show l)
+
+      A.Fail i _ e -> Left (ParseError $ "failed parsing " ++ show i ++ "; " ++ e)
+      A.Partial _  -> Left (ParseError $ "insufficient input")
 
 withConn :: HostName -> PortID -> (Handle -> IO a) -> IO a
 withConn host port = bracket
@@ -152,6 +161,6 @@ withConn host port = bracket
       return hdl)
   (\hdl -> SB.hPut hdl "close\n" >> hClose hdl)
 
-simple :: Command a -> IO a
-simple cmd = withConn host port $ \hdl -> run hdl cmd
+simple :: Command a -> IO (Either ClientError a)
+simple cmd = withConn host port $ \hdl -> runExceptT (run hdl cmd)
   where (host, port) = ("localhost", PortNumber 6600)
