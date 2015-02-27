@@ -143,7 +143,7 @@ withConn host port = bracket
   (do hdl <- connectTo host port
       _   <- A.parseOnly helo <$> SB.hGetLine hdl
       return hdl)
-  hClose
+  (\hdl -> SB.hPut hdl "close\n" >> hClose hdl)
 
 simple :: Command a -> IO a
 simple cmd = withConn host port $ \hdl -> run hdl cmd
