@@ -39,6 +39,8 @@ import Data.Monoid
 
 import Control.Exception (bracket)
 import Control.Monad.Trans.Except (ExceptT(..))
+
+import System.IO (BufferMode(..), hSetBuffering)
 import System.IO.Error
 
 import qualified Data.Attoparsec.ByteString.Char8 as A
@@ -118,7 +120,11 @@ send :: Handle -> [CommandStr] -> IO ()
 send hdl = SB.hPut hdl . pack . map render
 
 recv :: Handle -> A.Parser a -> IO (A.Result a)
-recv hdl p = A.parseWith (SB.hGetSome hdl 64) p ""
+recv hdl p = do
+  hSetBuffering hdl (BlockBuffering $ Just kBUFSIZ)
+  A.parseWith (SB.hGetSome hdl kBUFSIZ) (p <* "OK\n") ""
+
+kBUFSIZ = 64 :: Int
 
 run :: Handle -> Command a -> IO a
 run hdl (Command q p) = send hdl q >> (f =<< recv hdl (runExceptT p))
