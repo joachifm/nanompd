@@ -213,7 +213,7 @@ single b = command ("single" .+ b) (return ())
 
 -- | Song information for currently playing song, if any.
 currentSong :: Command (Maybe SongInfo)
-currentSong = command "currentsong" (optional songInfoP)
+currentSong = command "currentsong" (optional playlistSongInfoP)
 
 -- | Wait for changes in any of the given subsystems.
 idle :: [SubsystemName] -> Command [SubsystemName]
