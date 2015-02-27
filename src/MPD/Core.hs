@@ -26,7 +26,7 @@ module MPD.Core (
   module MPD.Core.CommandStr,
 
   -- * Running commands
-  ProtocolVersion, run, withConn, simple,
+  ClientError(..), ProtocolVersion, run, withConn, simple,
   ) where
 
 import MPD.Core.CommandStr
