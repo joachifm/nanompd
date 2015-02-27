@@ -1,40 +1,56 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-warn-unused-binds #-}
 
-module Atto where
+module Atto (
+
+  spec,
+
+  -- * Core
+
+  -- ** Parsers
+  pairP, fieldP,
+  boolP, intP, textP,
+
+  -- ** Command specification interface
+  Command, command,
+
+  -- ** Command driver
+  simple, run,
+
+  -- * Wrappers
+
+  LsEntryInfo(..),
+  ping, playlistInfo, listAllInfo,
+
+  ) where
 
 import Core
 
-import Control.Monad.Trans.Except (ExceptT(..))
-
 import Control.Applicative
-import Data.Functor
-import Data.Function
-import Data.Semigroup
+import Data.Functor (($>))
+import Data.Function (fix)
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8            as SB
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
-import System.IO
+import System.IO (BufferMode(..), hSetBuffering)
 import System.IO.Error
-
-import Network
 
 import Test.Hspec
 
 ------------------------------------------------------------------------
 -- Parser
 
-pair :: ByteString -> A.Parser a -> A.Parser (ByteString, a)
-pair k v = (,) <$> A.string k <* A.string ": " <*> v <* A.char '\n'
+pairP :: ByteString -> A.Parser a -> A.Parser (ByteString, a)
+pairP k v = (,) <$> A.string k <* A.string ": " <*> v <* A.char '\n'
 
-field :: ByteString -> A.Parser a -> A.Parser a
-field k v = snd <$> pair k v
+fieldP :: ByteString -> A.Parser a -> A.Parser a
+fieldP k v = snd <$> pairP k v
 
-bool = A.char '0' $> False <|> A.char '1' $> True
-text = A.takeWhile1 (/= '\n')
-int  = (A.decimal :: A.Parser Int)
+boolP = A.char '0' $> False <|> A.char '1' $> True
+textP = A.takeWhile1 (/= '\n')
+intP  = A.decimal :: A.Parser Int
 
 response :: A.Parser a -> A.Parser (Either ByteString a)
 response p =
@@ -42,22 +58,23 @@ response p =
   Left  <$> ("ACK " *> A.takeWhile1 (/= '\n') <* A.char '\n')
 
 ------------------------------------------------------------------------
--- Dummy input
-
-object :: A.Parser (ByteString, Int)
-object =
-  (,) <$> field "file" (A.takeWhile1 (/= '\n'))
-      <*> field "time" A.decimal
+-- Specification
 
 spec :: Spec
 spec = describe "Parser" $ do
 
-  it "pair" $ do
-    A.parseOnly (pair "key" A.decimal) "key: 10\n"
+  let
+    object :: A.Parser (ByteString, Int)
+    object =
+      (,) <$> fieldP "file" (A.takeWhile1 (/= '\n'))
+          <*> fieldP "time" A.decimal
+
+  it "pairP" $ do
+    A.parseOnly (pairP "key" A.decimal) "key: 10\n"
     `shouldBe` Right ("key", 10)
 
-  it "field" $ do
-    A.parseOnly (field "key" A.decimal) "key: 10\n"
+  it "fieldP" $ do
+    A.parseOnly (fieldP "key" A.decimal) "key: 10\n"
     `shouldBe` Right 10
 
   it "response/single OK" $ do
@@ -86,55 +103,71 @@ spec = describe "Parser" $ do
 ------------------------------------------------------------------------
 -- Wrappers
 
+ping :: Command ()
 ping = command "ping" (return ())
 
-listallinfo = command "listallinfo" (A.many' lsEntryInfoP)
+listAllInfo :: Command [LsEntryInfo]
+listAllInfo = command "listallinfo" (A.many' lsEntryInfoP)
 
 data LsEntryInfo
-  = LsEntrySongInfo ByteString ByteString ByteString [(ByteString, ByteString)]
-  | LsEntryDirInfo ByteString ByteString
-  | LsEntryPListInfo ByteString ByteString
+  = LsEntrySongInfo !ByteString !ByteString !Int ![(ByteString, ByteString)]
+  | LsEntryDirInfo !ByteString !ByteString
+  | LsEntryPListInfo !ByteString !ByteString
     deriving (Show)
 
-lsEntryInfoP :: A.Parser LsEntryInfo
 lsEntryInfoP =
       (LsEntrySongInfo
-       <$> field "file" text
-       <*> field "Last-Modified" text
-       <*> field "Time" text
-       <*> A.many' songTag
+       <$> fieldP "file" textP
+       <*> fieldP "Last-Modified" textP
+       <*> fieldP "Time" intP
+       <*> A.many' songTagP
       )
   <|> (LsEntryDirInfo
-       <$> field "directory" text
-       <*> field "Last-Modified" text
+       <$> fieldP "directory" textP
+       <*> fieldP "Last-Modified" textP
       )
   <|> (LsEntryPListInfo
-       <$> field "playlist" text
-       <*> field "Last-Modified" text
+       <$> fieldP "playlist" textP
+       <*> fieldP "Last-Modified" textP
       )
 
-playlistinfo = command "playlistinfo" playlistinfoP
+playlistInfo :: Command [PlaylistSongInfo]
+playlistInfo = command "playlistinfo" (A.many' playlistSongInfoP)
 
-playlistinfoP = A.many' $ (,,,,,) <$>
-  field "file" text <*>
-  field "Last-Modified" text <*>
-  A.many' songTag <*>
-  field "Time" int <*>
-  optional (field "Pos" int) <*>
-  optional (field "Id" int)
+data PlaylistSongInfo = PlaylistSongInfo
+  !ByteString
+  !ByteString
+  ![(ByteString, ByteString)]
+  !Int
+  !(Maybe Int)
+  !(Maybe Int)
+    deriving (Show)
 
-songTag = A.choice (map (`pair` text) tags) where
+-- note: here, Time comes after the tags, whereas for LsEntrySongInfo,
+-- Time comes BEFORE tags. Why you no consistent?
+
+playlistSongInfoP = PlaylistSongInfo <$>
+  fieldP "file" textP <*>
+  fieldP "Last-Modified" textP <*>
+  A.many' songTagP <*>
+  fieldP "Time" intP <*>
+  optional (fieldP "Pos" intP) <*>
+  optional (fieldP "Id" intP)
+
+songTagP = A.choice (map (`pairP` textP) tags) where
   tags =
     [
       "Album"
     , "Artist"
-    , "Composer"
     , "Date"
-    , "Disc"
     , "Genre"
-    , "Performer"
     , "Title"
+
     , "Track"
+    , "Disc"
+
+    , "Composer"
+    , "Performer"
 
     , "AlbumArtist"
     , "AlbumArtistSort"
@@ -154,24 +187,38 @@ data Command a = Command [ByteString] (A.Parser (Either ByteString a))
 
 command q p = Command [q] (response p)
 
-simple (Command q p) k = mpd $ \h -> runWith h (q, p <* "OK\n") k
+------------------------------------------------------------------------
+-- Driver
 
-runWith h (q, p) k = send h q >> process h p k
+simple c = mpd $ \h -> run h c
+
+run h (Command q p) = do
+  send h q
+  hSetBuffering h (BlockBuffering $ Just kBUFSIZ)
+  A.parseWith (SB.hGetSome h kBUFSIZ) (p <* "OK\n") ""
+
+kBUFSIZ = 64 :: Int
+
+------------------------------------------------------------------------
+-- Driver model
+
+simple_model (Command q p) k = mpd $ \h -> run_model h (q, p <* "OK\n") k
+
+run_model h (q, p) k = send h q >> process h p k
 
 process h p k = do
   hSetBuffering h (BlockBuffering $ Just kBUFSIZ)
   start recv p k
   where recv = SB.hGetSome h kBUFSIZ
 
-kBUFSIZ = 64 :: Int
-
 start g p k = worker g k (A.parse p "")
 
 worker g k = fix $ \recur p -> do
   ln <- g
-  print ln
   case A.feed p ln of
     A.Partial p' -> recur (A.Partial p')
+
     A.Done "" r  -> k r
     A.Done i _   -> fail ("superflous input: " ++ show i)
+
     A.Fail i _ s -> fail ("failed parsing " ++ show i ++ "; " ++ s)
