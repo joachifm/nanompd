@@ -130,7 +130,8 @@ recv :: Handle -> A.Parser a -> ExceptT ClientError IO (A.Result a)
 recv hdl p = io $ A.parseWith (SB.hGetSome hdl kBUFSIZ) p ""
 
 -- Feed input n octets at a time (TODO: what is a good size here?)
-kBUFSIZ = 1024 :: Int
+kBUFSIZ :: Int
+kBUFSIZ = 1024
 
 run :: Handle -> Command a -> ExceptT ClientError IO a
 run hdl (Command q p) = do
