@@ -16,7 +16,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8            as SB
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
-import System.IO (Handle)
+import System.IO
 import System.IO.Error
 
 import Network
@@ -84,9 +84,34 @@ spec = describe "Parser" $ do
     `shouldBe` Left "not enough input"
 
 ------------------------------------------------------------------------
--- Commands
+-- Wrappers
 
 ping = command "ping" (return ())
+
+listallinfo = command "listallinfo" (A.many' lsEntryInfoP)
+
+data LsEntryInfo
+  = LsEntrySongInfo ByteString ByteString ByteString [(ByteString, ByteString)]
+  | LsEntryDirInfo ByteString ByteString
+  | LsEntryPListInfo ByteString ByteString
+    deriving (Show)
+
+lsEntryInfoP :: A.Parser LsEntryInfo
+lsEntryInfoP =
+      (LsEntrySongInfo
+       <$> field "file" text
+       <*> field "Last-Modified" text
+       <*> field "Time" text
+       <*> A.many' songTag
+      )
+  <|> (LsEntryDirInfo
+       <$> field "directory" text
+       <*> field "Last-Modified" text
+      )
+  <|> (LsEntryPListInfo
+       <$> field "playlist" text
+       <*> field "Last-Modified" text
+      )
 
 playlistinfo = command "playlistinfo" playlistinfoP
 
@@ -98,7 +123,7 @@ playlistinfoP = A.many' $ (,,,,,) <$>
   optional (field "Pos" int) <*>
   optional (field "Id" int)
 
-songTag = A.choice (map (`field` text) tags) where
+songTag = A.choice (map (`pair` text) tags) where
   tags =
     [
       "Album"
@@ -122,6 +147,9 @@ songTag = A.choice (map (`field` text) tags) where
     , "MUSICBRAINZ_TRACKID"
     ]
 
+------------------------------------------------------------------------
+-- Commands
+
 data Command a = Command [ByteString] (A.Parser (Either ByteString a))
 
 command q p = Command [q] (response p)
@@ -130,13 +158,18 @@ simple (Command q p) k = mpd $ \h -> runWith h (q, p <* "OK\n") k
 
 runWith h (q, p) k = send h q >> process h p k
 
-process h p k = start recv p k
-  where recv = SB.hGetSome h 64
+process h p k = do
+  hSetBuffering h (BlockBuffering $ Just kBUFSIZ)
+  start recv p k
+  where recv = SB.hGetSome h kBUFSIZ
+
+kBUFSIZ = 64 :: Int
 
 start g p k = worker g k (A.parse p "")
 
 worker g k = fix $ \recur p -> do
   ln <- g
+  print ln
   case A.feed p ln of
     A.Partial p' -> recur (A.Partial p')
     A.Done "" r  -> k r
