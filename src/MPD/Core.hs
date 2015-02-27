@@ -127,7 +127,8 @@ recv hdl p = do
   -- do @(p <* "OK\n")@ we hang forever on ACK ... maybe do it in
   -- run?
 
-kBUFSIZ = 64 :: Int
+-- Feed input n octets at a time (TODO: what is a good size here?)
+kBUFSIZ = 1024 :: Int
 
 run :: Handle -> Command a -> IO a
 run hdl (Command q p) = send hdl q >> (f =<< recv hdl (runExceptT p))
