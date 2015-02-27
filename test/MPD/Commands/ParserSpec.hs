@@ -6,18 +6,15 @@ module MPD.Commands.ParserSpec (spec) where
 import Util
 import Gen
 
-import MPD.Core
 import MPD.Commands.Parser
 
 import Control.Applicative
 import qualified Data.Attoparsec.ByteString as A
 
 import Data.Monoid (mconcat, (<>))
-import Data.String (IsString(..))
 import qualified Data.ByteString.Char8 as SB
 
 import Test.Hspec
-import Test.Hspec.Expectations.Contrib
 import Test.Hspec.QuickCheck (prop)
 import Test.QuickCheck
 

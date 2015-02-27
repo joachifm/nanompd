@@ -7,8 +7,6 @@ import Data.Monoid
 import Data.String
 import qualified Data.ByteString.Char8 as SB
 
-import Test.Hspec.Expectations.Contrib
-import Test.Hspec.QuickCheck (prop)
 import Test.QuickCheck
 
 songInfoG = do

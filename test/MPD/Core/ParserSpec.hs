@@ -10,10 +10,7 @@ import MPD.Core
 import Control.Applicative
 import qualified Data.ByteString.Char8 as SB8
 
-import qualified Data.Attoparsec.ByteString.Char8 as A
-
 import Test.Hspec
-import Test.Hspec.Expectations.Contrib
 import Test.Hspec.QuickCheck (prop)
 import Test.QuickCheck
 

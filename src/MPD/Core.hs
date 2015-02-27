@@ -34,7 +34,6 @@ import MPD.Core.CommandStr
 import MPD.Core.ClientError
 
 import Control.Applicative
-import Control.Monad
 import Data.Functor
 import Data.Monoid
 
