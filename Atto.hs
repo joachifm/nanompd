@@ -5,6 +5,8 @@ module Atto where
 
 import Core
 
+import Control.Monad.Trans.Except (ExceptT(..))
+
 import Control.Applicative
 import Data.Function
 import Data.Semigroup
@@ -13,10 +15,12 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8            as SB
 import qualified Data.Attoparsec.ByteString.Char8 as A
 
-import System.IO
+import System.IO (Handle)
 import System.IO.Error
 
 import Network
+
+import Test.Hspec
 
 ------------------------------------------------------------------------
 -- Parser
@@ -32,34 +36,55 @@ response p =
   Right <$> (p <* "list_OK\n") <|>
   Left  <$> ("ACK " *> A.takeWhile1 (/= '\n') <* A.char '\n')
 
+------------------------------------------------------------------------
+-- Dummy input
+
 object :: A.Parser (ByteString, Int)
 object =
   (,) <$> field "file" (A.takeWhile1 (/= '\n'))
       <*> field "time" A.decimal
 
+spec :: Spec
+spec = describe "Parser" $ do
+
+  it "pair" $ do
+    A.parseOnly (pair "key" A.decimal) "key: 10\n"
+    `shouldBe` Right ("key", 10)
+
+  it "field" $ do
+    A.parseOnly (field "key" A.decimal) "key: 10\n"
+    `shouldBe` Right 10
+
+  it "response/single OK" $ do
+    A.parseOnly (response object) "file: foo.mp3\ntime: 420\nlist_OK\n"
+    `shouldBe` Right (Right ("foo.mp3", 420))
+
+  it "response/single ACK" $ do
+    A.parseOnly (response object) "ACK protocol error\n"
+    `shouldBe` Right (Left "protocol error")
+
+  it "response/single, left-overs" $ do
+    A.parseOnly (response object)
+                "file: foo.mp3\ntime: 420\nlist_OK\nfile: bar.mp3\ntime: 120\nlist_OK\n"
+    `shouldBe` Right (Right ("foo.mp3", 420))
+
+  it "response/combined, no left-overs" $ do
+    A.parseOnly ((,) <$> response object <*> response object)
+                "file: foo.mp3\ntime: 420\nlist_OK\nfile: bar.mp3\ntime: 120\nlist_OK\n"
+    `shouldBe` Right (Right ("foo.mp3", 420), Right ("bar.mp3", 120))
+
+  it "response/combined, insufficient input" $ do
+    A.parseOnly ((,) <$> response object <*> response object)
+                "file: foo.mp3\ntime: 420\nlist_OK\n"
+    `shouldBe` Left "not enough input"
+
 ------------------------------------------------------------------------
--- Dummy input
+-- Commands
 
-dummy1 = "file: foo.mp3\ntime: 420\nlist_OK\n"
-dummy2 = "file: bar.mp3\ntime: 120\nlist_OK\n"
-dummy3 = "ACK protocol error\n"
+data Command a = Command [ByteString] (A.Parser a)
 
-test1 = A.parse (response object) dummy1
-test2 = A.parse (response object) dummy3
-test3 = A.parse ((,) <$> response object <*> response object) (dummy1 <> dummy2)
-test4 = A.parse ((,) <$> response object <*> response object) dummy1
-test5 = A.parse ((,) <$> response object <*> response object) (dummy1 <> dummy3)
-test6 = A.parse (response object) (dummy1 <> dummy2)
-test7 = A.parse (response object) (dummy1 <> dummy3)
-
-------------------------------------------------------------------------
--- Direct
-
-simple (q, p) k = do
-  (h, _) <- connect
-  r <- runWith h (q, p <* "OK\n") k
-  hClose h
-  return r
+simple (q, p) k = mpd $ \h -> do
+  runWith h (q, p <* "OK\n") k
 
 runWith h (q, p) k = send h q >> (process h p k)
 
