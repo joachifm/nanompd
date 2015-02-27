@@ -34,7 +34,7 @@ and the daemon's status information:
 @
 import MPD
 
-main = either (fail . show) print =<< ('runEitherT' . 'run')
+main = either (fail . show) print =<< 'simple'
   ((,) \<$\> 'currentSong' \<*\> 'status')
 @
 -}
