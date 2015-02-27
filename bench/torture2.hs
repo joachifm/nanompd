@@ -9,8 +9,7 @@ import MPD
 
 import Control.Applicative
 import Control.Monad (replicateM_, void)
-import Control.Monad.Trans.Either (runEitherT)
 
 main :: IO ()
 main = void $ replicateM_ 100 $ do
-  (runEitherT . run) (listAllInfo Nothing) >>= print
+  simple $ listAllInfo Nothing

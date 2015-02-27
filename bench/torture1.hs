@@ -9,8 +9,8 @@ import MPD
 
 import Control.Applicative
 import Control.Monad (replicateM_, void)
-import Control.Monad.Trans.Either (runEitherT)
+import Control.Monad.Trans.Except (runExceptT)
 
 main :: IO ()
 main = void $ replicateM_ 100000 $ do
-  (runEitherT . run) ((,) <$> status <*> currentSong) >>= print
+  simple ((,) <$> status <*> currentSong)
