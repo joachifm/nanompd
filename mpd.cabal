@@ -80,20 +80,22 @@ test-suite specs
     , MPD.Commands.ParserSpec
 
   build-depends:
+    -- Platform dependencies
       base
     , attoparsec
     , bytestring
     , deepseq
-    , mtl
+    , mtl >= 2.2
     , network
+    , transformers >= 0.4
     , text
     , time
     , unordered-containers
 
+    -- Test dependencies
     , hspec >= 1.8.1
     , hspec-discover >= 2
     , hspec-expectations > 0.4
-
     , QuickCheck
 
   ghc-options:
