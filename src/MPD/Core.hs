@@ -40,7 +40,6 @@ import Data.Monoid
 import Control.Exception (bracket)
 import Control.Monad.Trans.Except (ExceptT(..))
 
-import System.IO (BufferMode(..), hSetBuffering)
 import System.IO.Error
 
 import qualified Data.Attoparsec.ByteString.Char8 as A
@@ -121,7 +120,6 @@ send hdl = SB.hPut hdl . pack . map render
 
 recv :: Handle -> A.Parser a -> IO (A.Result a)
 recv hdl p = do
-  hSetBuffering hdl LineBuffering
   A.parseWith (SB.hGetSome hdl kBUFSIZ) p ""
   -- TODO: we need to throw away the final OK, but if we
   -- do @(p <* "OK\n")@ we hang forever on ACK ... maybe do it in
