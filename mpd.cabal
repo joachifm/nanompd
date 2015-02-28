@@ -59,6 +59,7 @@ library
     , MPD.Core.Command
     , MPD.Core.CommandArg
     , MPD.Core.CommandStr
+    , MPD.Core.Parser
 
   ghc-options:
     -Wall
