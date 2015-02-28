@@ -34,4 +34,4 @@ script:
 
   - cabal check
   - cabal sdist
-  - cabal install --force-reinstalls dist/nanompd-*.tar.gz
+  - cabal install --force-reinstalls dist/mpd-*.tar.gz
