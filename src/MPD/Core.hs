@@ -86,11 +86,11 @@ pack = T.encodeUtf8 . T.unlines
      . filter (not . T.null)
 
 protocolError :: A.Parser (Int, Int, T.Text, T.Text)
-protocolError = ((,,,) <$> -- note: expect that we've already parsed "ACK "
+protocolError = (,,,) <$> -- note: expect that we've already parsed "ACK "
   (A.char '[' *> A.decimal <* A.char '@') <*>
   (A.decimal <* A.string "] {") <*>
   (T.decodeUtf8 <$> A.takeWhile1 (/= '}') <* A.string "} ") <*>
-  (T.decodeUtf8 <$> A.takeWhile1 (/= '\n'))) {- <* A.char '\n')) -}
+  (T.decodeUtf8 <$> A.takeWhile1 (/= '\n')) {- <* A.char '\n')) -}
 
 responseP :: A.Parser a -> A.Parser (Either SB.ByteString a)
 responseP p = A.eitherP
@@ -153,7 +153,7 @@ run hdl (Command q p) = do
           | otherwise   -> Left (ParseError $ "left-overs: " ++ show l)
 
       A.Fail i _ e -> Left (ParseError $ "failed parsing " ++ show i ++ "; " ++ e)
-      A.Partial _  -> Left (ParseError $ "insufficient input")
+      A.Partial _  -> Left (ParseError   "insufficient input")
 
 withConn :: HostName -> PortID -> (Handle -> IO a) -> IO a
 withConn host port = bracket
