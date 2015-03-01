@@ -127,7 +127,7 @@ send :: Handle -> [CommandStr] -> ExceptT ClientError IO ()
 send hdl = io . SB.hPut hdl . pack . map render
 
 recv :: Handle -> A.Parser a -> ExceptT ClientError IO (A.Result a)
-recv hdl p = io $ A.parseWith (SB.hGetSome hdl kBUFSIZ) p ""
+recv hdl p = io $ A.parseWith (SB.hGetSome hdl kBUFSIZ) p mempty
 
 -- Feed input n octets at a time (TODO: what is a good size here?)
 kBUFSIZ :: Int
