@@ -1,5 +1,5 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
-{-# LANGUAGE Safe #-}
+{-# LANGUAGE Trustworthy #-}
 
 {-|
 Module      : MPD
@@ -21,11 +21,14 @@ module MPD
     -- $usage
     module MPD.Commands
   , module MPD.Core
+  , simple
   ) where
 
 import MPD.Commands
-import MPD.Core (Command, ClientError(..), run, withConn, simple)
+import MPD.Core (Command, ClientError(..), run, withConn)
 import Prelude hiding (repeat)
+import Control.Monad.Trans.Except (runExceptT)
+import Network (PortID(..))
 
 {-$usage
 Produce a crude report of the currently playing song
@@ -38,3 +41,7 @@ main = either (fail . show) print =<< 'simple'
   ((,) \<$\> 'currentSong' \<*\> 'status')
 @
 -}
+
+simple :: Command a -> IO (Either ClientError a)
+simple cmd = withConn host port $ \hdl -> runExceptT (run hdl cmd)
+  where (host, port) = ("localhost", PortNumber 6600)

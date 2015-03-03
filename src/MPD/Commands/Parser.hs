@@ -37,7 +37,7 @@ module MPD.Commands.Parser (
   , songTagP
   ) where
 
-import MPD.Core
+import MPD.Core.Parser
 import MPD.Commands.Types
 
 import Control.Applicative

@@ -58,6 +58,8 @@ library
     , MPD.Core.ClientError
     , MPD.Core.CommandArg
     , MPD.Core.CommandStr
+    , MPD.Core.Parser
+    , MPD.Core.Wire
 
   ghc-options:
     -Wall
@@ -84,9 +86,9 @@ test-suite specs
     , attoparsec
     , bytestring
     , deepseq
-    , mtl >= 2.2
+    , mtl
     , network
-    , transformers >= 0.4
+    , transformers
     , text
     , time
     , unordered-containers
