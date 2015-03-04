@@ -51,4 +51,4 @@ spec = do
     songInfoP `shouldAccept` SB.unlines x
 
   prop "songInfo/many" $ forAll (listOf1 songInfoG) $ \x ->
-    A.many1 songInfoP `shouldAccept` SB.unlines (concat x)
+    A.many1 songInfoP `shouldAccept` SB.unlines (mconcat x)
