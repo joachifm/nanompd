@@ -27,7 +27,7 @@ instance (CommandArg a, CommandArg b) => CommandArg (Either a b) where
   fromArg = either fromArg fromArg
 
 instance (CommandArg a) => CommandArg [a] where
-  fromArg m = T.unwords (map fromArg m)
+  fromArg = T.unwords . map fromArg
 
 instance CommandArg Int where
   fromArg = T.pack . show
@@ -39,7 +39,7 @@ instance CommandArg Double where
   fromArg = T.pack . show
 
 instance CommandArg Bool where
-  fromArg x = if x then "1" else "0"
+  fromArg = bool "0" "1"
 
 instance CommandArg T.Text where
   fromArg = id
