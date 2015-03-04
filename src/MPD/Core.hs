@@ -27,7 +27,7 @@ module MPD.Core (
 
   -- * Running commands
   ClientError(..), ProtocolVersion,
-  run, withConn, simple,
+  run, withConn
   ) where
 
 import MPD.Core.CommandStr
@@ -113,7 +113,3 @@ withConn host port = bracket
       _   <- A.parseOnly helo <$> SB.hGetLine hdl
       return hdl)
   (\hdl -> SB.hPut hdl "close\n" >> hClose hdl)
-
-simple :: Command a -> IO (Either ClientError a)
-simple cmd = withConn host port $ \hdl -> runExceptT (run hdl cmd)
-  where (host, port) = ("localhost", PortNumber 6600)
