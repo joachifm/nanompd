@@ -20,6 +20,7 @@ import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString.Char8 as SB
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import qualified Data.List as L
 
 type ProtocolVersion = (Int, Int, Int)
 
@@ -32,7 +33,7 @@ pack :: [T.Text] -> SB.ByteString
 pack = T.encodeUtf8 . T.unlines
      . ("command_list_ok_begin" :)
      . (++ ["command_list_end"])
-     . filter (not . T.null)
+     . L.filter (not . T.null)
 
 protocolError :: A.Parser (Int, Int, T.Text, T.Text)
 protocolError = (,,,) <$> -- note: expect that we've already parsed "ACK "
