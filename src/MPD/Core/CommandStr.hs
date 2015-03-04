@@ -27,7 +27,7 @@ instance Monoid CommandStr where
   CommandStr a `mappend` CommandStr b = CommandStr (a `mappend` b)
 
 instance IsString CommandStr where
-  fromString x = CommandStr [T.pack x]
+  fromString = CommandStr . (: []) . T.pack
 
 (.+) :: (CommandArg a) => CommandStr -> a -> CommandStr
 CommandStr s .+ a = CommandStr (s ++ [fromArg a])
