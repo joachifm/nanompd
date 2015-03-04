@@ -5,7 +5,6 @@ module MPD.Commands.QuerySpec (spec) where
 import MPD.Commands.Types (Metadata(..))
 import MPD.Commands.Query
 import Test.Hspec
-import Data.Monoid
 
 spec :: Spec
 spec = do

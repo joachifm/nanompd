@@ -74,11 +74,6 @@ import MPD.Commands.Query
 import MPD.Commands.Parser
 import MPD.Commands.Types
 
-import Control.Applicative
-import Prelude hiding (repeat)
-
-import Data.Text (Text)
-
 ------------------------------------------------------------------------
 -- Connection
 

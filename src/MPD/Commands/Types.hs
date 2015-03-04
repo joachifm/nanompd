@@ -43,12 +43,9 @@ import MPD.Core.CommandArg
 
 import Control.DeepSeq (NFData(..))
 import Data.Maybe (fromJust)
-import Data.Monoid (Monoid(..), Sum(..), (<>))
-import Data.String (IsString(..))
+import Data.Monoid (Sum(..))
 import Data.Data (Data, Typeable)
 import Data.Time (UTCTime)
-import Data.Text (Text)
-import Data.ByteString.Char8 (ByteString)
 import qualified Data.HashMap.Strict as M
 import qualified Data.List as L
 

@@ -7,9 +7,6 @@ import Util
 import Gen
 import MPD.Core
 
-import Control.Applicative
-import qualified Data.ByteString.Char8 as SB8
-
 import Test.Hspec
 import Test.Hspec.QuickCheck (prop)
 import Test.QuickCheck
@@ -18,13 +15,13 @@ spec :: Spec
 spec = do
 
   prop "boolP" $ forAll (elements ([0, 1]::[Int])) $ \x ->
-    boolP `shouldAccept` SB8.pack (show x)
+    boolP `shouldAccept` fromString (show x)
 
   prop "floatP" $ forAll (arbitrary :: Gen Double) $ \x ->
-    floatP `shouldAccept` SB8.pack (show x)
+    floatP `shouldAccept` fromString (show x)
 
   prop "intP" $ forAll (suchThat arbitrary (>= 0)) $ \x -> do
-    intP `shouldAccept` SB8.pack (show (x::Int))
+    intP `shouldAccept` fromString (show (x::Int))
 
   prop "textP" $ forAll textG $ \x -> do
     textP `shouldAccept` x

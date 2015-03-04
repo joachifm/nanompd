@@ -3,7 +3,6 @@
 module MPD.Core.CommandStrSpec (spec) where
 
 import MPD.Core
-import Data.Text (Text)
 import Test.Hspec
 
 spec :: Spec

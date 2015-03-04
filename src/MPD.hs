@@ -26,9 +26,10 @@ module MPD
 
 import MPD.Commands
 import MPD.Core (Command, ClientError(..), run, withConn)
-import Prelude hiding (repeat)
+
 import Control.Monad.Trans.Except (runExceptT)
 import Network (PortID(..))
+import System.IO
 
 {-$usage
 Produce a crude report of the currently playing song

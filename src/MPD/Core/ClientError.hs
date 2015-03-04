@@ -13,8 +13,8 @@ Portability : unportable
 
 module MPD.Core.ClientError (ClientError(..)) where
 
-import Data.Text (Text)
 import Network (HostName, PortID)
+import System.IO.Error (IOError)
 
 data ClientError
   = ParseError String

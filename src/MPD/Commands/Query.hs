@@ -24,7 +24,7 @@ module MPD.Commands.Query (
 
 import MPD.Commands.Types
 import MPD.Core.CommandArg (CommandArg(..))
-import Data.Monoid (Monoid(..))
+
 import qualified Data.Text as T
 
 {-|
@@ -38,7 +38,7 @@ matches items with title "FooBar" and artist "BarFoo".
 
 Use 'mempty' to create a query which matches anything.
 -}
-newtype Query = Query { queryTerms :: [(Metadata, T.Text)] }
+newtype Query = Query { queryTerms :: [(Metadata, Text)] }
 
 instance Monoid Query where
   mempty = Query []
@@ -46,7 +46,7 @@ instance Monoid Query where
 
 instance CommandArg Query where
   fromArg = T.unwords . map f . queryTerms
-    where f (m, s) = T.unwords [fromArg m, T.pack (show s)]
+    where f (m, s) = T.unwords [fromArg m, fromString (show s)]
 
-(=?) :: Metadata -> T.Text -> Query
+(=?) :: Metadata -> Text -> Query
 m =? s = Query [(m, s)]

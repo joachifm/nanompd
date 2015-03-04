@@ -3,9 +3,6 @@
 
 module Gen where
 
-import Control.Applicative
-import Data.Monoid
-import Data.String
 import qualified Data.ByteString.Char8 as SB
 
 import Test.QuickCheck

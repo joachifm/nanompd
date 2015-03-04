@@ -35,19 +35,15 @@ import MPD.Core.ClientError
 import MPD.Core.Parser
 import MPD.Core.Wire
 
-import Control.Applicative
-import Data.Monoid
-
 import Control.Exception (bracket)
 import Control.Monad.Trans.Except
-
-import System.IO.Error
 
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString.Char8            as SB
 
 import Network (HostName, PortID(..), connectTo)
-import System.IO (Handle, hClose)
+import System.IO (IO, Handle, hClose)
+import System.IO.Error (tryIOError)
 
 ------------------------------------------------------------------------
 
@@ -56,7 +52,7 @@ import System.IO (Handle, hClose)
 -- The left value is the protocol error message from MPD, which we defer
 -- parsing further until the command is run.
 
-data Command a = Command [CommandStr] (ExceptT SB.ByteString A.Parser a)
+data Command a = Command [CommandStr] (ExceptT ByteString A.Parser a)
   deriving (Functor)
 
 instance Applicative Command where
