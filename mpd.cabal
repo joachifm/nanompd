@@ -24,6 +24,7 @@ tested-with: GHC ==7.6.3, GHC ==7.8.4
 extra-source-files:
   CONTRIBUTORS
   README.markdown
+  HLint.hs
 
 source-repository head
   type: git
