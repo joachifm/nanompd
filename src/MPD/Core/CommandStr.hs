@@ -19,6 +19,7 @@ import MPD.Core.CommandArg
 import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import qualified Data.Text as T
+import qualified Data.List as L
 
 data CommandStr = CommandStr [T.Text]
 
@@ -33,4 +34,4 @@ instance IsString CommandStr where
 CommandStr s .+ a = CommandStr (s ++ [fromArg a])
 
 render :: CommandStr -> T.Text
-render (CommandStr as) = T.unwords (filter (not . T.null) as)
+render (CommandStr as) = T.unwords (L.filter (not . T.null) as)

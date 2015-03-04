@@ -50,6 +50,7 @@ import Data.Time (UTCTime)
 import Data.Text (Text)
 import Data.ByteString.Char8 (ByteString)
 import qualified Data.HashMap.Strict as M
+import qualified Data.List as L
 
 ------------------------------------------------------------------------
 -- $scalar
@@ -133,7 +134,7 @@ data SubsystemName
     deriving (Eq, Show, Read, Enum, Data, Typeable)
 
 instance CommandArg SubsystemName where
-  fromArg = fromJust . (`lookup` tbl)
+  fromArg = fromJust . (`L.lookup` tbl)
     where
       tbl = [ (Database, "database")
             , (Player, "player")
