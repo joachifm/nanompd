@@ -23,6 +23,7 @@ module MPD.Core (
 
   -- * Command specification
   Command, command,
+  module MPD.Core.CommandArg,
   module MPD.Core.CommandStr,
 
   -- * Running commands
@@ -30,6 +31,7 @@ module MPD.Core (
   run, withConn
   ) where
 
+import MPD.Core.CommandArg
 import MPD.Core.CommandStr
 import MPD.Core.ClientError
 import MPD.Core.Parser
