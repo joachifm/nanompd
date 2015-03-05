@@ -32,6 +32,7 @@ import Data.Monoid as X (Monoid(..), (<>))
 import Data.Functor as X (Functor(..), (<$>), ($>), void)
 import Data.Foldable as X (
   Foldable, foldr, foldl',
+  concat, concatMap,
   sum, product, any, all, elem, notElem,
   )
 import Data.Traversable as X (
@@ -52,13 +53,13 @@ import Data.Text as X (Text)
 import Data.String as X (String, IsString(..))
 
 map :: (Functor f) => (a -> b) -> f a -> f b
-map = X.fmap
+map = {-# SCC "map" #-} X.fmap
 {-# INLINE map #-}
 
 (++) :: (MonadPlus m) => m a -> m a -> m a
-(++) = mplus
+(++) = {-# SCC "++" #-} mplus
 {-# INLINE (++) #-}
 
 length :: (Foldable t, Integral a) => t e -> a
-length = X.foldl' (\z _ -> z + 1) 0
+length = {-# SCC "length" #-} X.foldl' (\z _ -> z + 1) 0
 {-# INLINE length #-}
