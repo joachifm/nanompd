@@ -67,7 +67,7 @@ library
     -funbox-strict-fields
 
   ghc-prof-options:
-    -fprof-auto
+    -fprof-auto-exported
 
 test-suite specs
   type: exitcode-stdio-1.0
