@@ -114,5 +114,6 @@ benchmark ParseBench
   build-depends:
       base
     , attoparsec
+    , bytestring
     , criterion
     , mpd

@@ -8,6 +8,7 @@ import MPD.Commands.Parser
 
 import Control.Applicative
 import qualified Data.Attoparsec.ByteString as A
+import qualified Data.ByteString as SB
 
 import Criterion.Main
 
@@ -34,4 +35,9 @@ main = defaultMain [
       nf (A.parseOnly ((,,) <$> fieldP "a" boolP
                             <*> fieldP "b" floatP
                             <*> fieldP "c" intP)) "a: 1\nb: 2.5\nc: 42\n"
+
+  , bench "field/complex" $ do
+      let p = (,,) <$> fieldP "a" boolP <*> fieldP "b" floatP <*> fieldP "c" intP
+          s = SB.concat (replicate 1000 "a: 1\nb: 2.5\nc: 42\n")
+      nf (A.parseOnly $ A.many1 p) s
   ]
