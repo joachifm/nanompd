@@ -3,6 +3,7 @@ branches:
     - master
     - maint
     - dev
+    - travis
 
 env:
   - CABALVER=1.16 GHCVER=7.6.3
@@ -23,7 +24,7 @@ before_install:
 
 install:
   - travis_retry cabal update
-  - cabal install --only-dependencies --enable-tests --enable-benchmarks
+  - travis_retry cabal install --only-dependencies --enable-tests --enable-benchmarks
 
 script:
   - cabal configure --enable-tests --enable-benchmarks -v2
@@ -33,5 +34,4 @@ script:
   - cabal test
 
   - cabal check
-  - cabal sdist
-  - cabal install --force-reinstalls dist/mpd-*.tar.gz
+  - cabal sdist && cabal install --force-reinstalls dist/mpd-*.tar.gz
