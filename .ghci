@@ -1,1 +1,1 @@
-:set -DTEST -isrc -itest -ibench
+:set -DTEST -ilib -isrc -itest -ibench
