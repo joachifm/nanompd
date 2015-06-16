@@ -1,6 +1,6 @@
 {-# OPTIONS_HADDOCK show-extensions #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Trustworthy       #-}
+{-# LANGUAGE Safe #-}
 
 {-|
 Module      : MPD.Core.Wire
