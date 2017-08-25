@@ -16,7 +16,6 @@ module MPD.Core.CommandStr ( CommandStr, (.+), render ) where
 
 import MPD.Core.CommandArg
 
-import Data.Monoid (Monoid(..))
 import Data.String (IsString(..))
 import qualified Data.Text as T
 import qualified Data.List as L

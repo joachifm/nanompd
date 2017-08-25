@@ -43,7 +43,7 @@ import MPD.Core.CommandArg
 
 import Control.DeepSeq (NFData(..))
 import Data.Maybe (fromJust)
-import Data.Monoid (Monoid(..), Sum(..), (<>))
+import Data.Monoid (Sum(..), (<>))
 import Data.String (IsString(..))
 import Data.Data (Data, Typeable)
 import Data.Time (UTCTime)

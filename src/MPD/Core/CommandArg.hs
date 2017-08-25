@@ -15,7 +15,6 @@ Portability : unportable
 module MPD.Core.CommandArg ( CommandArg(..) ) where
 
 import Data.Bool (bool)
-import Data.Monoid (Monoid(..))
 import qualified Data.Text as T
 
 class CommandArg a where

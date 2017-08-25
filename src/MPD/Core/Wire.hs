@@ -14,8 +14,6 @@ Portability : unportable
 
 module MPD.Core.Wire where
 
-import Control.Applicative
-
 import qualified Data.Attoparsec.ByteString.Char8 as A
 import qualified Data.ByteString.Char8 as SB
 import qualified Data.Text as T

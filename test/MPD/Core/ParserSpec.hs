@@ -7,7 +7,6 @@ import Util
 import Gen
 import MPD.Core
 
-import Control.Applicative
 import qualified Data.ByteString.Char8 as SB8
 
 import Test.Hspec

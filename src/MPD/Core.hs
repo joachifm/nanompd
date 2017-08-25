@@ -38,7 +38,6 @@ import MPD.Core.Parser
 import MPD.Core.Wire
 
 import Control.Applicative
-import Data.Monoid
 
 import Control.Exception (bracket)
 import Control.Monad.Trans.Except
