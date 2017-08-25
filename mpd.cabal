@@ -101,7 +101,6 @@ test-suite specs
 
   ghc-options:
     -Wall
-    -Werror
 
   cpp-options:
     -DTEST
