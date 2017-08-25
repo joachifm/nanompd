@@ -16,6 +16,9 @@ cache:
 
 before_cache:
   - rm -fv $HOME/.cabal/packages/hackage.haskell.org/build-reports.log
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.cache
+  - rm -fv $HOME/.cabal/packages/hackage.haskell.org/00-index.tar
+  - rm -rfv $HOME/.stack/snapshots/*/*/*/doc
 
 matrix:
   fast_finish: true
@@ -63,9 +66,9 @@ before_install:
   else
     travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   fi
-
-  # Use the more reliable S3 mirror of Hackage
+- |
   mkdir -p $HOME/.cabal
+
   echo 'remote-repo: hackage.haskell.org:http://hackage.fpcomplete.com/' > $HOME/.cabal/config
   echo 'remote-repo-cache: $HOME/.cabal/packages' >> $HOME/.cabal/config
 
@@ -74,13 +77,10 @@ before_install:
     echo 'jobs: $ncpus' >> $HOME/.cabal/config
   fi
 
-- PACKAGES=$(stack --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
-
 install:
 - echo "$(ghc --version) [$(ghc --print-project-git-commit-id 2> /dev/null || echo '?')]"
-- if [ -f configure.ac ]; then autoreconf -i; fi
 - |
-  set -ex
+  set -e
   case "$BUILD" in
     stack)
       stack --no-terminal --install-ghc $ARGS test --bench --only-dependencies
@@ -88,31 +88,23 @@ install:
     cabal)
       cabal --version
       travis_retry cabal update
-      cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
+      cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
       ;;
   esac
-  set +ex
+  set +e
 
 script:
 - |
-  set -ex
+  set -e
   case "$BUILD" in
     stack)
       stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
       ;;
     cabal)
-      cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --ghc-options=-Werror --reorder-goals --max-backjumps=-1 $CABALARGS $PACKAGES
-
-      ORIGDIR=$(pwd)
-      for dir in $PACKAGES
-      do
-        cd $dir
-        cabal check || [ "$CABALVER" == "1.16" ]
-        cabal sdist
-        SRC_TGZ=$(cabal info . | awk '{print $2;exit}').tar.gz && \
-          (cd dist && cabal install --force-reinstalls "$SRC_TGZ")
-        cd $ORIGDIR
-      done
+      cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --ghc-options=-Werror --reorder-goals --max-backjumps=-1 $CABALARGS
+      cabal check || [ "$CABALVER" == "1.16" ]
+      cabal sdist
+      cabal install --force-reinstalls dist/mpd-*.tar.gz
       ;;
   esac
-  set +ex
+  set +e
