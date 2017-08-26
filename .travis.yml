@@ -15,6 +15,15 @@ before_cache:
   - rm -fv $HOME/.cabal/packages/*/00-index.cache
   - rm -fv $HOME/.cabal/packages/*/00-index.tar
 
+addons:
+  apt:
+    packages: [happy-1.19.5,alex-3.1.7]
+    sources: [hvr-ghc]
+
+env:
+  - HAPPYVER=1.19.5
+  - ALEXVER=3.1.7
+
 matrix:
   include:
     - env: CABALVER=1.22 GHCVER=7.10.3
@@ -27,14 +36,14 @@ matrix:
    - env: CABALVER=head GHCVER=head
 
 install:
-  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:$PATH
+  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/$CABALVER/bin:/opt/alex/$ALEXVER:/opt/happy/$HAPPYVER:$PATH
   - |
     CABALARGS=""
     if [ "x$GHCVER" = "xhead" ]; then CABALARGS=--allow-newer; fi
   - |
     travis_retry cabal update
     cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
-    cabal install packdeps hlint
+    cabal install packdeps
 
 script:
 - |
