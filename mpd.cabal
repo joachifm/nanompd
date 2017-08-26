@@ -82,6 +82,8 @@ test-suite specs
     , MPD.Core.ParserSpec
     , MPD.Commands.QuerySpec
     , MPD.Commands.ParserSpec
+    , MPD.Core.Wire.ParserSpec
+    , MPD.Core.Wire.PacketSpec
 
   build-depends:
     -- Platform dependencies
