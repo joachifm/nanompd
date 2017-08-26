@@ -97,7 +97,7 @@ run hdl (Command q p) = do
 
       A.Done l r -> case r of
 
-        Left e  -> case A.parseOnly protocolError e of
+        Left e  -> case A.parseOnly protocolErrorP e of
           Left e'            -> Left (Custom e')
           Right (a, b, c, d) -> Left (ProtocolError a b c d)
 
@@ -111,6 +111,6 @@ run hdl (Command q p) = do
 withConn :: HostName -> PortID -> (Handle -> IO a) -> IO a
 withConn host port = bracket
   (do hdl <- connectTo host port
-      _   <- A.parseOnly helo <$> SB.hGetLine hdl
+      _   <- A.parseOnly heloP <$> SB.hGetLine hdl
       return hdl)
   (\hdl -> SB.hPut hdl "close\n" >> hClose hdl)

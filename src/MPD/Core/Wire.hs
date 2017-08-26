@@ -22,10 +22,10 @@ import qualified Data.List as L
 
 type ProtocolVersion = (Int, Int, Int)
 
-helo :: A.Parser ProtocolVersion
-helo = "OK MPD " *> ((,,) <$> A.decimal <* A.char '.'
-                          <*> A.decimal <* A.char '.'
-                          <*> A.decimal <* A.char '\n')
+heloP :: A.Parser ProtocolVersion
+heloP = "OK MPD " *> ((,,) <$> A.decimal <* A.char '.'
+                           <*> A.decimal <* A.char '.'
+                           <*> A.decimal <* A.char '\n')
 
 pack :: [T.Text] -> SB.ByteString
 pack = T.encodeUtf8 . T.unlines
@@ -37,8 +37,8 @@ commandList []  = []
 commandList [x] = [x]
 commandList xs  = "command_list_ok_begin" : xs ++ ["command_list_end"]
 
-protocolError :: A.Parser (Int, Int, T.Text, T.Text)
-protocolError = (,,,) <$> -- note: expect that we've already parsed "ACK "
+protocolErrorP :: A.Parser (Int, Int, T.Text, T.Text)
+protocolErrorP = (,,,) <$> -- note: expect that we've already parsed "ACK "
   (A.char '[' *> A.decimal <* A.char '@') <*>
   (A.decimal <* A.string "] {") <*>
   (T.decodeUtf8 <$> A.takeWhile1 (/= '}') <* A.string "} ") <*>
