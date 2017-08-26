@@ -103,6 +103,7 @@ script:
     cabal)
       cabal install --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --ghc-options=-Werror --reorder-goals --max-backjumps=-1 $CABALARGS
       cabal check || [ "$CABALVER" == "1.16" ]
+      cabal test
       cabal sdist
       cabal install --force-reinstalls dist/mpd-*.tar.gz
       ;;
