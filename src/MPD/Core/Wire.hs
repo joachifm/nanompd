@@ -29,9 +29,13 @@ helo = "OK MPD " *> ((,,) <$> A.decimal <* A.char '.'
 
 pack :: [T.Text] -> SB.ByteString
 pack = T.encodeUtf8 . T.unlines
-     . ("command_list_ok_begin" :)
-     . (++ ["command_list_end"])
+     . commandList
      . L.filter (not . T.null)
+
+commandList :: [T.Text] -> [T.Text]
+commandList []  = []
+commandList [x] = [x]
+commandList xs  = "command_list_ok_begin" : xs ++ ["command_list_end"]
 
 protocolError :: A.Parser (Int, Int, T.Text, T.Text)
 protocolError = (,,,) <$> -- note: expect that we've already parsed "ACK "
