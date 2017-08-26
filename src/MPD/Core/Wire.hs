@@ -12,39 +12,13 @@ Stability   : unstable
 Portability : unportable
 -}
 
-module MPD.Core.Wire where
+module MPD.Core.Wire (
+  ProtocolVersion,
+  heloP,
+  protocolErrorP,
+  responseP,
+  pack,
+  ) where
 
-import qualified Data.Attoparsec.ByteString.Char8 as A
-import qualified Data.ByteString.Char8 as SB
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.List as L
-
-type ProtocolVersion = (Int, Int, Int)
-
-heloP :: A.Parser ProtocolVersion
-heloP = "OK MPD " *> ((,,) <$> A.decimal <* A.char '.'
-                           <*> A.decimal <* A.char '.'
-                           <*> A.decimal <* A.char '\n')
-
-pack :: [T.Text] -> SB.ByteString
-pack = T.encodeUtf8 . T.unlines
-     . commandList
-     . L.filter (not . T.null)
-
-commandList :: [T.Text] -> [T.Text]
-commandList []  = []
-commandList [x] = [x]
-commandList xs  = "command_list_ok_begin" : xs ++ ["command_list_end"]
-
-protocolErrorP :: A.Parser (Int, Int, T.Text, T.Text)
-protocolErrorP = (,,,) <$> -- note: expect that we've already parsed "ACK "
-  (A.char '[' *> A.decimal <* A.char '@') <*>
-  (A.decimal <* A.string "] {") <*>
-  (T.decodeUtf8 <$> A.takeWhile1 (/= '}') <* A.string "} ") <*>
-  (T.decodeUtf8 <$> A.takeWhile1 (/= '\n')) {- <* A.char '\n')) -}
-
-responseP :: A.Parser a -> A.Parser (Either SB.ByteString a)
-responseP p = A.eitherP
-  ("ACK " *> A.takeWhile1 (/= '\n') <* A.char '\n')
-  (p <* "list_OK\n")
+import MPD.Core.Wire.Parser
+import MPD.Core.Wire.Packet

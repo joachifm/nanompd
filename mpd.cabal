@@ -61,6 +61,8 @@ library
     , MPD.Core.CommandStr
     , MPD.Core.Parser
     , MPD.Core.Wire
+    , MPD.Core.Wire.Parser
+    , MPD.Core.Wire.Packet
 
   ghc-options:
     -Wall
