@@ -20,17 +20,13 @@ addons:
     packages: [happy-1.19.5,alex-3.1.7]
     sources: [hvr-ghc]
 
-env:
-  - HAPPYVER=1.19.5
-  - ALEXVER=3.1.7
-
 matrix:
   include:
-    - env: CABALVER=1.22 GHCVER=7.10.3
+    - env: ALEXVER=3.1.7 HAPPYVER=1.19.5 CABALVER=1.22 GHCVER=7.10.3
       addons: {apt: {packages: [cabal-install-1.22,ghc-7.10.3], sources: [hvr-ghc]}}
-    - env: CABALVER=1.24 GHCVER=8.0.2
+    - env: ALEXVER=3.1.7 HAPPYVER=1.19.5 CABALVER=1.24 GHCVER=8.0.2
       addons: {apt: {packages: [cabal-install-1.24,ghc-8.0.2], sources: [hvr-ghc]}}
-    - env: CABALVER=head GHCVER=head
+    - env: ALEXVER=3.1.7 HAPPYVER=1.19.5 CABALVER=head GHCVER=head
       addons: {apt: {packages: [cabal-install-head,ghc-head], sources: [hvr-ghc]}}
   allow_failures:
    - env: CABALVER=head GHCVER=head
@@ -41,9 +37,11 @@ install:
     CABALARGS=""
     if [ "x$GHCVER" = "xhead" ]; then CABALARGS=--allow-newer; fi
   - |
+    set -e
     travis_retry cabal update
     cabal install --only-dependencies --enable-tests --enable-benchmarks --force-reinstalls --ghc-options=-O0 --reorder-goals --max-backjumps=-1 $CABALARGS
     cabal install packdeps
+    set +e
 
 script:
 - |
