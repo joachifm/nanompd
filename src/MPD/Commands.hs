@@ -84,14 +84,14 @@ import Data.Text (Text)
 
 -- | Ping daemon.
 ping :: Command ()
-ping = command "ping" (return ())
+ping = command_ "ping"
 
 ------------------------------------------------------------------------
 -- Current playlist
 
 -- | Add path to current playlist.
 add :: Path -> Command ()
-add uri = command ("add" .+ uri) (return ())
+add uri = command_ ("add" .+ uri)
 
 -- | Like 'add', return song id of newly added path.
 addId :: Path -> Maybe SongPos -> Command SongId
@@ -99,11 +99,11 @@ addId uri pos = command ("addid" .+ uri .+ pos) intP
 
 -- | Clear current playlist.
 clear :: Command ()
-clear = command "clear" (return ())
+clear = command_ "clear"
 
 -- | Delete by song id.
 deleteId :: SongId -> Command ()
-deleteId id' = command ("deleteid" .+ id') (return ())
+deleteId id' = command_ ("deleteid" .+ id')
 
 -- | List song information for items in current playlist.
 playlistInfo :: Command [SongInfo]
@@ -117,7 +117,7 @@ plChangesPosId v = command ("plchangesposid" .+ v) (many p)
 
 -- | Shuffle current playlist.
 shuffle :: Maybe Range -> Command ()
-shuffle mbRange = command ("shuffle" .+ mbRange) (return ())
+shuffle mbRange = command_ ("shuffle" .+ mbRange)
 
 ------------------------------------------------------------------------
 -- Database
@@ -151,62 +151,62 @@ update mbPath = command ("update" .+ mbPath) (fieldP "updating_db" intP)
 
 -- | Advance to next playlist item.
 next :: Command ()
-next = command "next" (return ())
+next = command_ "next"
 
 -- | Pause playback.
 pause :: Command ()
-pause = command "pause" (return ())
+pause = command_ "pause"
 
 -- | Start playback.
 play :: Maybe SongPos -> Command ()
-play pos = command ("play" .+ pos) (return ())
+play pos = command_ ("play" .+ pos)
 
 -- | Like 'play' but for song id.
 playId :: Maybe SongId -> Command ()
-playId sid = command ("playid" .+ sid) (return ())
+playId sid = command_ ("playid" .+ sid)
 
 -- | Previous playlist item.
 previous :: Command ()
-previous = command "previous" (return ())
+previous = command_ "previous"
 
 -- | Seek by song position.
 seek :: SongPos -> Seconds -> Command ()
-seek pos dest = command ("seek" .+ pos .+ dest) (return ())
+seek pos dest = command_ ("seek" .+ pos .+ dest)
 
 -- | Seek in current song.
 seekCur :: Seconds -> Command ()
-seekCur dest = command ("seekcur" .+ dest) (return ())
+seekCur dest = command_ ("seekcur" .+ dest)
 
 -- | Seek by song id.
 seekId :: SongId -> Seconds -> Command ()
-seekId sid dest = command ("seekid" .+ sid .+ dest) (return ())
+seekId sid dest = command_ ("seekid" .+ sid .+ dest)
 
 -- | Stop playback.
 stop :: Command ()
-stop = command "stop" (return ())
+stop = command_ "stop"
 
 ------------------------------------------------------------------------
 -- Playback options
 
 -- | Enable consume mode.
 consume :: Bool -> Command ()
-consume b = command ("consume" .+ b) (return ())
+consume b = command_ ("consume" .+ b)
 
 -- | Enable random mode.
 random :: Bool -> Command ()
-random b = command ("random" .+ b) (return ())
+random b = command_ ("random" .+ b)
 
 -- | Enable repeat mode.
 repeat :: Bool -> Command ()
-repeat b = command ("repeat" .+ b) (return ())
+repeat b = command_ ("repeat" .+ b)
 
 -- | Set volume.
 setVolume :: Volume -> Command ()
-setVolume n = command ("setvol" .+ n) (return ())
+setVolume n = command_ ("setvol" .+ n)
 
 -- | Enable single mode.
 single :: Bool -> Command ()
-single b = command ("single" .+ b) (return ())
+single b = command_ ("single" .+ b)
 
 ------------------------------------------------------------------------
 -- Status
@@ -221,7 +221,7 @@ idle ss = command ("idle" .+ ss) (many (fieldP "changed" subsystemP))
 
 -- | Cancel 'idle'.
 noidle :: Command ()
-noidle = command "noidle" (return ())
+noidle = command_ "noidle"
 
 -- | Daemon status information.
 status :: Command StatusInfo
@@ -241,8 +241,15 @@ listPlaylistInfo plName =
 
 -- | Load playlist.
 load :: Path -> Command ()
-load path = command ("load" .+ path) (return ())
+load path = command_ ("load" .+ path)
 
 -- | Save current playlist.
 save :: Path -> Command ()
-save path = command ("save" .+ path) (return ())
+save path = command_ ("save" .+ path)
+
+------------------------------------------------------------------------
+-- Internal
+
+-- | A variant of 'command' that throws away the result.
+command_ :: CommandStr -> Command ()
+command_ s = command s (return ())
