@@ -31,10 +31,9 @@ import qualified Data.ByteString.Char8 as SB
 -- | Run a 'Command' against an existing MPD server connection.
 run :: Handle -> Command a -> ExceptT ClientError IO a
 run hdl (Command q p) = do
-  send hdl q
   -- Note: The ugliness of this code indicates that this design is bad,
   -- but it kind of works for now.
-  res <- recv hdl (runExceptT p)
+  res <- io (rawsend hdl q (runExceptT p))
   ExceptT $ return $
     case res of
 
@@ -68,11 +67,10 @@ withConn host port = bracket
 -- Internal
 --
 
-send :: Handle -> [CommandStr] -> ExceptT ClientError IO ()
-send hdl = io . SB.hPut hdl . pack . map render
-
-recv :: Handle -> A.Parser a -> ExceptT ClientError IO (A.Result a)
-recv hdl p = io $ A.parseWith (SB.hGetSome hdl kBUFSIZ) p mempty
+rawsend :: Handle -> [CommandStr] -> A.Parser a -> IO (A.Result a)
+rawsend hdl q p = do
+  SB.hPut hdl (pack (map render q))
+  A.parseWith (SB.hGetSome hdl kBUFSIZ) p mempty
 
 io :: IO a -> ExceptT ClientError IO a
 io m = ExceptT $ either (Left . ConnError) Right <$> tryIOError m
