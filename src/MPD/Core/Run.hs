@@ -77,6 +77,6 @@ recv hdl p = io $ A.parseWith (SB.hGetSome hdl kBUFSIZ) p mempty
 io :: IO a -> ExceptT ClientError IO a
 io m = ExceptT $ either (Left . ConnError) Right <$> tryIOError m
 
--- Feed input n octets at a time (TODO: what is a good size here?)
+-- Feed input @n@ octets at a time.
 kBUFSIZ :: Int
-kBUFSIZ = 1024
+kBUFSIZ = 4096 -- getconf PAGE_SIZE
